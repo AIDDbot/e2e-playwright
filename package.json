@@ -1,0 +1,25 @@
+{
+  "name": "e2e-playwright",
+  "version": "1.0.0",
+  "description": "E2E Playwright archetype",
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "format": "oxfmt . ",
+    "lint": "oxlint --fix-dangerously --format=agent .",
+    "typecheck": "oxlint --type-aware --type-check --format=agent ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.1.0",
+    "lefthook": "^2.1.9",
+    "oxfmt": "^0.57.0",
+    "oxlint": "^1.72.0",
+    "oxlint-tsgolint": "^0.24.0",
+    "typescript": "^7.0.1-rc"
+  },
+  "engines": {
+    "node": ">=26.0.0"
+  }
+}
