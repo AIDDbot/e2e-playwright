@@ -1,10 +1,12 @@
 {
-  "name": "e2e-playwright",
-  "version": "1.0.0",
-  "description": "E2E Playwright archetype",
+  "name": "astrobookings-e2e",
+  "version": "0.1.0",
+  "description": "End-to-end Playwright suite for the AstroBookings application",
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report ./reports/html",
     "format": "oxfmt . ",
     "lint": "oxlint --fix-dangerously --format=agent .",
     "typecheck": "oxlint --type-aware --type-check --format=agent ."
