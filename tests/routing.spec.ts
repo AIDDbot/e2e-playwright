@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Client-side routing", () => {
   test("should navigate to About via the menu without a full reload", async ({ page }) => {

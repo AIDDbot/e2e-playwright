@@ -2,24 +2,29 @@
   "name": "astrobookings-e2e",
   "version": "0.1.0",
   "description": "End-to-end Playwright suite for the AstroBookings application",
-  "type": "module",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report ./reports/html",
-    "format": "oxfmt . ",
-    "lint": "oxlint --fix-dangerously --format=agent .",
-    "typecheck": "oxlint --type-aware --type-check --format=agent ."
+    "format": "oxfmt ",
+    "lint": "oxlint --fix -f=agent "
   },
   "dependencies": {},
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "@types/node": "^26.1.0",
-    "lefthook": "^2.1.9",
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
     "oxlint-tsgolint": "^0.24.0",
     "typescript": "^7.0.1-rc"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "nub",
+      "version": "^0.4.2",
+      "onFail": "warn"
+    }
   },
   "engines": {
     "node": ">=26.0.0"

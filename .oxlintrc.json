@@ -1,0 +1,70 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "eslint", "oxc"],
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "restriction": "error",
+    "perf": "warn",
+    "style": "warn",
+    "pedantic": "off",
+    "nursery": "off"
+  },
+  "env": {
+    "builtin": true
+  },
+  // The "restriction" category turns on a lot of individually opinionated rules.
+  // The ones below don't fit this project (a DOM/fetch-based, framework-free web
+  // client) or actively contradict another enabled rule, so they're tuned or
+  // turned off explicitly here instead of via scattered inline comments.
+  "rules": {
+    // Conflicts directly with unicorn/no-null, which pushes callers toward
+    // `undefined` as the "no value" sentinel instead of `null`.
+    "no-undefined": "off",
+    // Ternaries are the idiomatic way to pick a value inline (e.g. inside the
+    // HTML template literals used by the components in app/router and
+    // app/shared/components).
+    "no-ternary": "off",
+    // The codebase favors named function declarations (readability, stack
+    // traces) over const arrow assignments; this rule would fight that
+    // consistently applied style.
+    "func-style": "off",
+    // Default limit (10) is too low for small, cohesive request-handling
+    // functions (e.g. server.ts's serveTsAsJs); raise instead of fragmenting
+    // them into artificial helpers.
+    "max-statements": ["warn", { "max": 20 }],
+    // Trivial/structural numbers (increments, array/scroll-position zeros)
+    // aren't "magic" — only ignore the handful that show up that way.
+    "no-magic-numbers": ["warn", { "ignore": [-1, 0, 1] }],
+    // Single-letter generics (T, K, V…) are standard TypeScript convention;
+    // don't flag them, but keep checking regular identifiers.
+    "id-length": ["warn", { "checkGeneric": false, "exceptions": ["r", "m"] }],
+    // async/await is required for fetch-based HTTP calls (app/shared/http-client.ts)
+    // and the Navigation API's Promise-returning intercept handler
+    // (app/core/create-router.ts); forcing manual .then() chains here would only
+    // hurt readability.
+    "oxc/no-async-await": "off",
+    // Needed for safe access to values that legitimately may be null/undefined
+    // (regex exec results, optional DOM query results, optional callbacks);
+    // the manual equivalent is strictly more verbose for no added safety.
+    "oxc/no-optional-chaining": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts"],
+      "rules": {
+        "init-declarations": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        // Test fixture values (counters, stored payloads) are self-explanatory
+        // from the surrounding `test(...)` name; naming a constant for each one
+        // would add indirection without adding clarity.
+        "no-magic-numbers": "off"
+      }
+    }
+  ]
+}

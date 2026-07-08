@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Health Page", () => {
   test("should load the home page", async ({ page }) => {
@@ -31,13 +31,13 @@ test.describe("Health Page", () => {
   });
 
   test("should be responsive", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 667 });
+    await page.setViewportSize({ height: 667, width: 375 });
     await page.goto("/");
 
     const main = page.locator("main");
     await expect(main).toBeVisible();
 
-    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.setViewportSize({ height: 1080, width: 1920 });
     await page.goto("/");
 
     await expect(main).toBeVisible();

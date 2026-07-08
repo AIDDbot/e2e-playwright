@@ -1,35 +1,65 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = process.env.PORT ?? 3000;
-const serverUrl = `http://localhost:${port}`;
+const DEFAULT_BACK_PORT = 3000;
+const DEFAULT_FRONT_PORT = 4000;
+const CI_RETRIES = 2;
+const LOCAL_RETRIES = 0;
+const CI_WORKERS = 1;
+
+const backPort = process.env.API_PORT ?? DEFAULT_BACK_PORT;
+const frontPort = process.env.PORT ?? DEFAULT_FRONT_PORT;
+const apiUrl = `http://localhost:${backPort}`;
+const frontUrl = `http://localhost:${frontPort}`;
+
+function resolveRetries(): number {
+  if (process.env.CI) {
+    return CI_RETRIES;
+  }
+  return LOCAL_RETRIES;
+}
+
+function resolveWorkers(): number | undefined {
+  if (process.env.CI) {
+    return CI_WORKERS;
+  }
+  return undefined;
+}
 
 export default defineConfig({
-  testDir: "./tests",
-  outputDir: "./reports/test-results",
+  forbidOnly: Boolean(process.env.CI),
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: [
-    ["json", { outputFile: "./reports/results.json" }],
-    ["html", { outputFolder: "./reports/html", open: "never" }],
-  ],
-  use: {
-    baseURL: serverUrl,
-    trace: "on-first-retry",
-  },
-
+  outputDir: "./reports/test-results",
   projects: [
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-
-  webServer: {
-    command: "nub run start",
-    url: serverUrl,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+  reporter: [
+    ["json", { outputFile: "./reports/results.json" }],
+    ["html", { open: "never", outputFolder: "./reports/html" }],
+  ],
+  retries: resolveRetries(),
+  testDir: "./tests",
+  use: {
+    baseURL: frontUrl,
+    trace: "on-first-retry",
   },
+  // WebServer: [
+  //   {
+  //     Command: "nub run start",
+  //     Cwd: "../back",
+  //     ReuseExistingServer: !process.env.CI,
+  //     Timeout: 120_000,
+  //     Url: `${apiUrl}/api/health`,
+  //   },
+  //   {
+  //     Command: "nub run start",
+  //     Cwd: "../front",
+  //     ReuseExistingServer: !process.env.CI,
+  //     Timeout: 120_000,
+  //     Url: frontUrl,
+  //   },
+  // ],
+  workers: resolveWorkers(),
 });

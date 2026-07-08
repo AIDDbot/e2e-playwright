@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test.describe("Health API", () => {
   test("should return health status with uptime and runs count", async ({ request }) => {
