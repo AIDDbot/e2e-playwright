@@ -1,29 +1,26 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const DEFAULT_BACK_PORT = 3000;
 const DEFAULT_FRONT_PORT = 4000;
 const CI_RETRIES = 2;
 const LOCAL_RETRIES = 0;
 const CI_WORKERS = 1;
 
-const backPort = process.env.API_PORT ?? DEFAULT_BACK_PORT;
 const frontPort = process.env.PORT ?? DEFAULT_FRONT_PORT;
-const apiUrl = `http://localhost:${backPort}`;
 const frontUrl = `http://localhost:${frontPort}`;
 
-function resolveRetries(): number {
+const resolveRetries = (): number => {
   if (process.env.CI) {
     return CI_RETRIES;
   }
   return LOCAL_RETRIES;
-}
+};
 
-function resolveWorkers(): number | undefined {
+const resolveWorkers = (): number | undefined => {
   if (process.env.CI) {
     return CI_WORKERS;
   }
   return undefined;
-}
+};
 
 export default defineConfig({
   forbidOnly: Boolean(process.env.CI),

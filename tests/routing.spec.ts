@@ -4,7 +4,7 @@ test.describe("Client-side routing", () => {
   test("should navigate to About via the menu without a full reload", async ({ page }) => {
     await page.goto("/");
     await page.evaluate(() => {
-      (window as { __spaMarker?: boolean }).__spaMarker = true;
+      (globalThis as { __spaMarker?: boolean }).__spaMarker = true;
     });
 
     await page.getByRole("link", { name: "About" }).click();
@@ -13,7 +13,7 @@ test.describe("Client-side routing", () => {
     await expect(page.getByRole("heading", { name: "About" })).toBeVisible();
     await expect(page).toHaveTitle(/About/);
 
-    const marker = await page.evaluate(() => (window as { __spaMarker?: boolean }).__spaMarker);
+    const marker = await page.evaluate(() => (globalThis as { __spaMarker?: boolean }).__spaMarker);
     expect(marker).toBe(true);
   });
 

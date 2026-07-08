@@ -17,45 +17,13 @@
   "env": {
     "builtin": true
   },
-  // The "restriction" category turns on a lot of individually opinionated rules.
-  // The ones below don't fit this project (a DOM/fetch-based, framework-free web
-  // client) or actively contradict another enabled rule, so they're tuned or
-  // turned off explicitly here instead of via scattered inline comments.
-  "rules": {
-    // Conflicts directly with unicorn/no-null, which pushes callers toward
-    // `undefined` as the "no value" sentinel instead of `null`.
-    "no-undefined": "off",
-    // Ternaries are the idiomatic way to pick a value inline (e.g. inside the
-    // HTML template literals used by the components in app/router and
-    // app/shared/components).
-    "no-ternary": "off",
-    // The codebase favors named function declarations (readability, stack
-    // traces) over const arrow assignments; this rule would fight that
-    // consistently applied style.
-    "func-style": "off",
-    // Default limit (10) is too low for small, cohesive request-handling
-    // functions (e.g. server.ts's serveTsAsJs); raise instead of fragmenting
-    // them into artificial helpers.
-    "max-statements": ["warn", { "max": 20 }],
-    // Trivial/structural numbers (increments, array/scroll-position zeros)
-    // aren't "magic" — only ignore the handful that show up that way.
-    "no-magic-numbers": ["warn", { "ignore": [-1, 0, 1] }],
-    // Single-letter generics (T, K, V…) are standard TypeScript convention;
-    // don't flag them, but keep checking regular identifiers.
-    "id-length": ["warn", { "checkGeneric": false, "exceptions": ["r", "m"] }],
-    // async/await is required for fetch-based HTTP calls (app/shared/http-client.ts)
-    // and the Navigation API's Promise-returning intercept handler
-    // (app/core/create-router.ts); forcing manual .then() chains here would only
-    // hurt readability.
-    "oxc/no-async-await": "off",
-    // Needed for safe access to values that legitimately may be null/undefined
-    // (regex exec results, optional DOM query results, optional callbacks);
-    // the manual equivalent is strictly more verbose for no added safety.
-    "oxc/no-optional-chaining": "off"
-  },
+
+  "rules": {},
   "overrides": [
     {
-      "files": ["**/*.test.ts"],
+      // This project's suite uses Playwright's `*.spec.ts` convention (not
+      // `*.test.ts`); both globs are kept so the intent is explicit either way.
+      "files": ["**/*.test.ts", "**/*.spec.ts"],
       "rules": {
         "init-declarations": "off",
         "typescript/no-floating-promises": "off",
@@ -63,7 +31,32 @@
         // Test fixture values (counters, stored payloads) are self-explanatory
         // from the surrounding `test(...)` name; naming a constant for each one
         // would add indirection without adding clarity.
-        "no-magic-numbers": "off"
+        "no-magic-numbers": "off",
+        // `__spaMarker` is a deliberately double-underscore-prefixed marker
+        // stashed on `window` inside page.evaluate(), mirroring the
+        // `__something__` convention used by tools like `__coverage__` to
+        // avoid colliding with real app globals.
+        "no-underscore-dangle": ["error", { "allow": ["__spaMarker"] }],
+        // Playwright's `test(...)` callbacks and its locator/assertion APIs
+        // (page.goto, expect(...).toBeVisible, page.evaluate, ...) are
+        // Promise-based; the suite cannot avoid `async`/`await` without
+        // reverting to manual `.then()` chains for every action.
+        "oxc/no-async-await": "off"
+      }
+    },
+    {
+      "files": ["playwright.config.ts"],
+      "rules": {
+        // Playwright's own docs recommend `{ ...devices["Desktop Chrome"] }` to
+        // compose project configs; `Object.assign` would fight the ecosystem
+        // convention for no readability gain.
+        "oxc/no-rest-spread-properties": "off",
+        // `resolveWorkers` returns `number | undefined` (Playwright's own type
+        // for "no override"). `consistent-return` requires the `undefined`
+        // path to `return` explicitly once another path returns a value, which
+        // `no-undefined` then bans writing literally — the two rules can't
+        // both be satisfied here, so this one loses.
+        "no-undefined": "off"
       }
     }
   ]
