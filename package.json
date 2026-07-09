@@ -1,7 +1,7 @@
 {
-  "name": "astrobookings-e2e",
+  "name": "e2e-playwright",
   "version": "0.1.0",
-  "description": "End-to-end Playwright suite for the AstroBookings application",
+  "description": "End-to-end Playwright suite for api and web applications",
   "license": "MIT",
   "type": "module",
   "scripts": {
