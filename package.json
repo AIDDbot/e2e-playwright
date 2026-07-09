@@ -7,17 +7,17 @@
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report ./reports/html",
-    "format": "oxfmt ",
-    "lint": "oxlint --fix -f=agent "
+    "lint": "tsc --noEmit "
   },
-  "dependencies": {},
+  "engines": {
+    "node": ">=26.0.0"
+  },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^26.1.0",
-    "oxfmt": "^0.57.0",
-    "oxlint": "^1.72.0",
-    "oxlint-tsgolint": "^0.24.0",
-    "typescript": "^7.0.1-rc"
+    "typescript": "7"
   },
   "devEngines": {
     "packageManager": {
@@ -25,8 +25,5 @@
       "version": "^0.4.2",
       "onFail": "warn"
     }
-  },
-  "engines": {
-    "node": ">=26.0.0"
   }
 }

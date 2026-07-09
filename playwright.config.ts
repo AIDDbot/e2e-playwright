@@ -5,25 +5,27 @@ const CI_RETRIES = 2;
 const LOCAL_RETRIES = 0;
 const CI_WORKERS = 1;
 
-const frontPort = process.env.PORT ?? DEFAULT_FRONT_PORT;
+const frontPort = process.env["PORT"] ?? DEFAULT_FRONT_PORT;
 const frontUrl = `http://localhost:${frontPort}`;
 
 const resolveRetries = (): number => {
-  if (process.env.CI) {
+  if (process.env["CI"]) {
     return CI_RETRIES;
   }
   return LOCAL_RETRIES;
 };
 
 const resolveWorkers = (): number | undefined => {
-  if (process.env.CI) {
+  if (process.env["CI"]) {
     return CI_WORKERS;
   }
   return undefined;
 };
 
+const workers = resolveWorkers();
+
 export default defineConfig({
-  forbidOnly: Boolean(process.env.CI),
+  forbidOnly: Boolean(process.env["CI"]),
   fullyParallel: true,
   outputDir: "./reports/test-results",
   projects: [
@@ -58,5 +60,5 @@ export default defineConfig({
   //     Url: frontUrl,
   //   },
   // ],
-  workers: resolveWorkers(),
+  ...(workers === undefined ? {} : { workers }),
 });
