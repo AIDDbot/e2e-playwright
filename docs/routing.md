@@ -2,7 +2,7 @@
 
 ## Objective
 
-Verify that AstroBookings' client-side router navigates between views without a full
+Verify that Demo' client-side router navigates between views without a full
 page reload, keeps the browser history and deep links usable, and falls back
 correctly for unknown routes.
 

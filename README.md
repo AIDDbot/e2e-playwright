@@ -1,17 +1,20 @@
-# astrobookings-e2e
+# e2e-playwright
 
-End-to-end Playwright suite for the AstroBookings application.
+End-to-end Playwright suite for an api and web application.
 
 ## Quick start
 
 > [!IMPORTANT]
 > this projects uses `nub` as a package manager and runner.
 
-[Nub](https://github.com/nubjs/nub) is an all-in-one toolkit powered by Node.js that modernizes the developer experience of the Node.js ecosystem. Use it instead of node, npm run, and npx (or the equivalents in your preferred package manager).
-
+1. Install nub: the fastest tooling manager for Node.js projects.
 ```bash
 npm install -g --ignore-scripts=false @nubjs/nub   # one-time, system-level
-nub node install 26 && nub node pin 26 # latest Node.js 26 LTS
+nub node install 26 && nub node pin 26
+```
+
+2. Install dependencies and run the tests
+```bash
 nub install
 nub run test:e2e   # runs the tests
 nub run test:e2e:report   # opens the last HTML report
@@ -26,3 +29,4 @@ nub run test:e2e:report   # opens the last HTML report
 - [Alberto Basalo](https://albertobasalo.dev)
 - [GitHub](https://github.com/AIDDbot/AIDDbot)
 - [A.I. Code Academy](https://aicode.academy) (ES)
+
