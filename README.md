@@ -1,23 +1,30 @@
-# e2e-playwright
+# [e2e-playwright](https://github.com/AIDDbot/e2e-playwright)
 
 End-to-end Playwright suite for an api and web application.
 
 ## Quick start
 
 > [!IMPORTANT]
-> this projects uses `nub` as a package manager and runner.
+> this projects uses `bun` as a package manager and runner.
 
-1. Install nub: the fastest tooling manager for Node.js projects.
+1. Install bun: the fastest tooling manager for Node.js projects.
 ```bash
-npm install -g --ignore-scripts=false @nubjs/nub   # one-time, system-level
-nub node install 26 && nub node pin 26
+# Install Bun 
+# (Windows PowerShell)
+powershell -c "irm bun.com/install.ps1 | iex"
+# (macOS/Linux)
+curl -fsSL https://bun.com/install | bash -s
+# Verify installation
+bun --version
+# Upgrade Bun to the latest stable version
+bun upgrade --stable
 ```
 
 2. Install dependencies and run the tests
 ```bash
-nub install
-nub run test:e2e   # runs the tests
-nub run test:e2e:report   # opens the last HTML report
+bun install
+bun run test:e2e   # runs the tests
+bun run test:e2e:report   # opens the last HTML report
 ```
 
 [NOTE: configure how to run the server in the playwright.config.ts file]
