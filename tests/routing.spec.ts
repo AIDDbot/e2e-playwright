@@ -25,7 +25,7 @@ test.describe("Client-side routing", () => {
     await page.goBack();
 
     await expect(page).toHaveURL("/");
-    await expect(page.getByText("Hello, world!")).toBeVisible();
+    await expect(page.getByText("Hello, welcome to the AI code academy!")).toBeVisible();
   });
 
   test("should serve deep links directly", async ({ page }) => {
@@ -49,8 +49,10 @@ test.describe("Client-side routing", () => {
 
   test("should persist the last visited route in localStorage", async ({ page }) => {
     await page.goto("/about");
+    await expect(page.getByRole("heading", { name: "About" })).toBeVisible();
 
-    const lastRoute = await page.evaluate(() => localStorage.getItem("last-route"));
-    expect(lastRoute).toBe(JSON.stringify("/about"));
+    await expect
+      .poll(async () => page.evaluate(() => localStorage.getItem("last-route")))
+      .toBe(JSON.stringify("/about"));
   });
 });
