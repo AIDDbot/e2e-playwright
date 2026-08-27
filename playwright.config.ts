@@ -46,14 +46,14 @@ export default defineConfig({
   },
   // WebServer: [
   //   {
-  //     Command: "nub run start",
+  //     Command: "bun start",
   //     Cwd: "../back",
   //     ReuseExistingServer: !process.env.CI,
   //     Timeout: 120_000,
   //     Url: `${apiUrl}/api/health`,
   //   },
   //   {
-  //     Command: "nub run start",
+  //     Command: "bun start",
   //     Cwd: "../front",
   //     ReuseExistingServer: !process.env.CI,
   //     Timeout: 120_000,

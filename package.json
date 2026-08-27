@@ -9,21 +9,20 @@
     "test:e2e:report": "playwright show-report ./reports/html",
     "lint": "tsc --noEmit "
   },
-  "engines": {
-    "node": ">=26.0.0"
-  },
   "devDependencies": {
-    "@playwright/test": "^1.61.1",
+    "@types/bun": "^1.4.0",
+    "@playwright/test": "^1.62.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.1.0",
-    "typescript": "7"
+    "typescript": "^7.0.2"
   },
-  "devEngines": {
-    "packageManager": {
-      "name": "nub",
-      "version": "^0.4.2",
-      "onFail": "warn"
-    }
+  "packageManager": ">=bun@1.4.0",
+  "engines": {
+    "bun": ">=1.4.0",
+    "node": ">=26.0.0"
+  },
+  "dependencies": {
+    "playwright": "^1.62.1"
   }
 }
