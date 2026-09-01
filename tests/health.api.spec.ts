@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+const API_URL = "http://localhost:3000";
+
 test.describe("Health API", () => {
   test("should return health status with uptime and runs count", async ({ request }) => {
-    const response = await request.get("/api/health");
+    const response = await request.get(`${API_URL}/api/health`);
 
     expect(response.status()).toBe(200);
 
@@ -17,18 +19,18 @@ test.describe("Health API", () => {
   });
 
   test("should return content-type as application/json", async ({ request }) => {
-    const response = await request.get("/api/health");
+    const response = await request.get(`${API_URL}/api/health`);
 
     expect(response.headers()["content-type"]).toContain("application/json");
   });
 
   test("uptime should increase on subsequent calls", async ({ request }) => {
-    const response1 = await request.get("/api/health");
+    const response1 = await request.get(`${API_URL}/api/health`);
     const data1 = await response1.json();
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const response2 = await request.get("/api/health");
+    const response2 = await request.get(`${API_URL}/api/health`);
     const data2 = await response2.json();
 
     expect(data2.uptime).toBeGreaterThan(data1.uptime);
