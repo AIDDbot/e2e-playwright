@@ -3,8 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const DEFAULT_BACK_PORT = 3000;
 const DEFAULT_FRONT_PORT = 4000;
-const DEFAULT_BACK_DIRECTORY = "../astro-bookings-api";
-const DEFAULT_FRONT_DIRECTORY = "../astro-bookings-web";
+const DEFAULT_BACK_DIRECTORY = "../back";
+const DEFAULT_FRONT_DIRECTORY = "../front";
 const CI_RETRIES = 2;
 const LOCAL_RETRIES = 0;
 const CI_WORKERS = 1;

@@ -30,13 +30,13 @@ bun test:e2e:report # opens the last HTML report
 
 ## Target applications
 
-`bun test:e2e` starts the sibling API and web applications automatically. By
-default it expects the layout produced for Astro Bookings:
+`bun test:e2e` starts the sibling API and web applications automatically. Run
+it from the `e2e` directory in the default scaffold layout:
 
 ```text
-astro-bookings-api/
-astro-bookings-web/
-astro-bookings-e2e/
+back/
+front/
+e2e/
 ```
 
 For a different layout or ports, set these environment variables before running
