@@ -20,5 +20,5 @@ correctly for unknown routes.
 ## Test Plan
 
 - Suite: [`tests/routing.spec.ts`](../tests/routing.spec.ts) — AC-RTE-01..06
-- Run: `npm run test:e2e -- routing`
-- Report: `npm run test:e2e:report` (HTML), `reports/results.json` (JSON)
+- Run: `bun test:e2e -- routing`
+- Report: `bun test:e2e:report` (HTML), `reports/results.json` (JSON)

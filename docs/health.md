@@ -22,5 +22,5 @@ endpoint, and renders a home page that a monitoring or smoke-test job can check.
 
 - Suite: [`tests/health.api.spec.ts`](../tests/health.api.spec.ts) — AC-HLT-01..03
 - Suite: [`tests/health.page.spec.ts`](../tests/health.page.spec.ts) — AC-HLT-04..08
-- Run: `npm run test:e2e -- health`
-- Report: `npm run test:e2e:report` (HTML), `reports/results.json` (JSON)
+- Run: `bun test:e2e -- health`
+- Report: `bun test:e2e:report` (HTML), `reports/results.json` (JSON)

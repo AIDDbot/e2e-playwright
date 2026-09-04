@@ -28,7 +28,21 @@ bun test:e2e        # runs the tests
 bun test:e2e:report # opens the last HTML report
 ```
 
-[NOTE: configure how to run the server in the playwright.config.ts file]
+## Target applications
+
+`bun test:e2e` starts the sibling API and web applications automatically. By
+default it expects the layout produced for Astro Bookings:
+
+```text
+astro-bookings-api/
+astro-bookings-web/
+astro-bookings-e2e/
+```
+
+For a different layout or ports, set these environment variables before running
+the suite: `BACK_DIRECTORY`, `FRONT_DIRECTORY`, `BACK_PORT` (default `3000`),
+and `PORT` (default `4000`). Directory values may be relative to the E2E
+directory or absolute.
 
 ---
 
@@ -37,4 +51,3 @@ bun test:e2e:report # opens the last HTML report
 - [Alberto Basalo](https://albertobasalo.dev)
 - [GitHub](https://github.com/AIDDbot/AIDDbot)
 - [A.I. Code Academy](https://aicode.academy) (ES)
-

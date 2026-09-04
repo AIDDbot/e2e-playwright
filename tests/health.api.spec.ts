@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-const API_URL = "http://localhost:3000";
+const DEFAULT_BACK_PORT = 3000;
+const backPort = process.env["BACK_PORT"] ?? DEFAULT_BACK_PORT;
+const API_URL = `http://localhost:${backPort}`;
 
 test.describe("Health API", () => {
   test("should return health status with uptime and runs count", async ({ request }) => {
