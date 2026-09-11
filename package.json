@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "postinstall": "playwright install",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report ./reports/html",
     "lint": "tsc --noEmit "
