@@ -1,5 +1,5 @@
-import { resolve } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
+import { resolve } from "node:path";
 
 const DEFAULT_BACK_PORT = 3000;
 const DEFAULT_FRONT_PORT = 4000;
@@ -57,7 +57,7 @@ export default defineConfig({
       command: "bun start",
       cwd: backDirectory,
       reuseExistingServer: !process.env["CI"],
-      timeout: 120_000,
+      timeout: 2_000,
       url: `${backUrl}/api/health`,
     },
     {
@@ -65,7 +65,7 @@ export default defineConfig({
       cwd: frontDirectory,
       env: { API_BASE_URL: backUrl },
       reuseExistingServer: !process.env["CI"],
-      timeout: 120_000,
+      timeout: 2_000,
       url: frontUrl,
     },
   ],
