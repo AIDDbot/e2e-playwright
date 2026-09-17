@@ -2,18 +2,20 @@
   "name": "e2e-playwright",
   "version": "0.1.0",
   "description": "End-to-end Playwright suite for api and web applications",
+  "license": "MIT",
   "author": {
     "name": "Alberto Basalo",
     "email": "albertobasalo@aicode.academy",
     "url": "https://aicode.academy"
   },
-  "license": "MIT",
   "type": "module",
   "scripts": {
     "postinstall": "playwright install",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report ./reports/html",
-    "lint": "tsc --noEmit "
+    "lint": "tsc --noEmit ",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check"
   },
   "dependencies": {
     "playwright": "^1.63.0"
@@ -22,12 +24,13 @@
     "@playwright/test": "^1.63.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^26.5.1",
+    "@types/node": "^26.6.1",
+    "oxfmt": "^0.68.0",
     "typescript": "^7.0.2"
   },
-  "packageManager": ">=bun@1.4.0",
   "engines": {
     "bun": ">=1.4.0",
     "node": ">=26.0.0"
-  }
+  },
+  "packageManager": ">=bun@1.4.0"
 }
