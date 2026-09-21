@@ -10,20 +10,17 @@
   },
   "type": "module",
   "scripts": {
-    "postinstall": "playwright install",
+    "postinstall": "playwright install chromium",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report ./reports/html",
-    "lint": "tsc --noEmit ",
-    "format": "oxfmt --write",
-    "format:check": "oxfmt --check"
+    "lint": "tsc --noEmit",
+    "format": "oxfmt --write"
   },
   "dependencies": {
     "playwright": "^1.63.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
     "@types/node": "^26.6.1",
     "oxfmt": "^0.68.0",
     "typescript": "^7.0.2"
@@ -32,5 +29,5 @@
     "bun": ">=1.4.0",
     "node": ">=26.0.0"
   },
-  "packageManager": ">=bun@1.4.0"
+  "packageManager": "bun@1.4.0"
 }
