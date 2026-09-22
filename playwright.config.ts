@@ -55,26 +55,40 @@ for (const [variable, directory] of [
   }
 }
 
-// The app title comes from the front manifest so tests never hard-code it
-const readAppTitle = (directory: string): string => {
-  const manifestPath = resolve(directory, "package.json");
-  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
-    displayName?: string;
-    name?: string;
-  };
-  const title = manifest.displayName ?? manifest.name;
+interface FrontManifest {
+  author?: string | { email?: string; name?: string; url?: string };
+  displayName?: string;
+  name?: string;
+}
+
+// App title and author come from the front manifest so tests never hard-code them
+const frontManifestPath = resolve(frontDirectory, "package.json");
+const frontManifest = JSON.parse(readFileSync(frontManifestPath, "utf8")) as FrontManifest;
+
+const readAppTitle = (): string => {
+  const title = frontManifest.displayName ?? frontManifest.name;
   if (!title) {
-    throw new Error(`No displayName or name found in ${manifestPath}.`);
+    throw new Error(`No displayName or name found in ${frontManifestPath}.`);
   }
   return title;
+};
+
+// Normalized as an object; the "Name <email> (url)" string form is not parsed
+const readAppAuthor = (): string => {
+  const { author } = frontManifest;
+  if (typeof author === "string") {
+    return JSON.stringify({ name: author });
+  }
+  return JSON.stringify(author ?? {});
 };
 
 const backUrl = `http://localhost:${backPort}`;
 const frontUrl = `http://localhost:${frontPort}`;
 
-// Publish the API URL and app title for worker processes to use
+// Publish the API URL, app title and author for worker processes to use
 process.env["E2E_BACK_URL"] = backUrl;
-process.env["E2E_APP_TITLE"] = readAppTitle(frontDirectory);
+process.env["E2E_APP_TITLE"] = readAppTitle();
+process.env["E2E_APP_AUTHOR"] = readAppAuthor();
 
 const resolveRetries = (): number => {
   if (process.env["CI"]) {
