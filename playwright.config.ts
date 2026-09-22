@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { runPreflight } from "./tests/preflight.js";
+import { formatStartupProblems } from "./tests/startup-problems.js";
 
 const DEFAULT_BACK_PORT = 3_100;
 const DEFAULT_FRONT_PORT = 4_100;
@@ -12,6 +14,10 @@ const DEFAULT_REUSE_SERVER = false;
 const CI_RETRIES = 2;
 const LOCAL_RETRIES = 0;
 const CI_WORKERS = 1;
+const PREFLIGHT_EXIT_CODE = 1;
+// Extra time so the launcher reports its own, more precise timeout first
+const LAUNCHER_GRACE_MS = 5_000;
+const launcherPath = resolve(import.meta.dirname, "tests", "start-target.ts");
 
 // Optional local overrides (e.g. sibling archetype folders before scaffolding)
 if (existsSync(".env")) {
@@ -46,13 +52,34 @@ const frontDirectory = resolve(
   process.cwd(),
   process.env["FRONT_DIRECTORY"] ?? DEFAULT_FRONT_DIRECTORY,
 );
-// Fail fast: on Windows a missing cwd surfaces as a misleading "spawn cmd.exe ENOENT"
-for (const [variable, directory] of [
-  ["BACK_DIRECTORY", backDirectory],
-  ["FRONT_DIRECTORY", frontDirectory],
-] as const) {
-  if (!existsSync(directory)) {
-    throw new Error(`Target directory not found: ${directory}. Set ${variable} to fix it.`);
+// Workers re-evaluate this file and inherit E2E_DB_PATH from the main process
+const isMainProcess = !process.env["E2E_DB_PATH"];
+
+// Fail fast with every cause and its fix, instead of Playwright's generic webServer errors
+if (isMainProcess) {
+  const problems = await runPreflight({
+    reuseExistingServer,
+    targets: [
+      {
+        directory: backDirectory,
+        directoryVariable: "BACK_DIRECTORY",
+        name: "back",
+        port: backPort,
+        portVariable: "E2E_BACK_PORT",
+      },
+      {
+        directory: frontDirectory,
+        directoryVariable: "FRONT_DIRECTORY",
+        name: "front",
+        port: frontPort,
+        portVariable: "E2E_FRONT_PORT",
+      },
+    ],
+  });
+  if (problems.length > 0) {
+    const title = `${problems.length} problem(s) found before starting the servers`;
+    console.error(formatStartupProblems(title, problems));
+    process.exit(PREFLIGHT_EXIT_CODE);
   }
 }
 
@@ -83,8 +110,7 @@ const readAppAuthor = (): string => {
   return JSON.stringify(author ?? {});
 };
 
-// One throwaway database per run; workers re-evaluate this file and inherit the path
-const isMainProcess = !process.env["E2E_DB_PATH"];
+// One throwaway database per run
 if (isMainProcess) {
   process.env["E2E_DB_PATH"] = join(tmpdir(), `e2e-${Date.now()}-${process.pid}.db`);
 }
@@ -102,6 +128,15 @@ const frontUrl = `http://localhost:${frontPort}`;
 process.env["E2E_BACK_URL"] = backUrl;
 process.env["E2E_APP_TITLE"] = readAppTitle();
 process.env["E2E_APP_AUTHOR"] = readAppAuthor();
+
+// Runs "bun start" through the launcher, which explains crashes and timeouts
+const launchCommand = (
+  name: string,
+  readyUrl: string,
+  portVariable: string,
+  directoryVariable: string,
+): string =>
+  `bun "${launcherPath}" ${name} ${readyUrl} ${serverTimeoutMs} ${portVariable} ${directoryVariable}`;
 
 const resolveRetries = (): number => {
   if (process.env["CI"]) {
@@ -143,19 +178,21 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "bun start",
+      command: launchCommand("back", `${backUrl}/api/health`, "E2E_BACK_PORT", "BACK_DIRECTORY"),
       cwd: backDirectory,
       env: { DB_PATH: dbPath, PORT: String(backPort) },
+      name: "back",
       reuseExistingServer,
-      timeout: serverTimeoutMs,
+      timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
       url: `${backUrl}/api/health`,
     },
     {
-      command: "bun start",
+      command: launchCommand("front", frontUrl, "E2E_FRONT_PORT", "FRONT_DIRECTORY"),
       cwd: frontDirectory,
       env: { API_BASE_URL: backUrl, PORT: String(frontPort) },
+      name: "front",
       reuseExistingServer,
-      timeout: serverTimeoutMs,
+      timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
       url: frontUrl,
     },
   ],
