@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 const DEFAULT_BACK_PORT = 3_100;
 const DEFAULT_FRONT_PORT = 4_100;
@@ -82,6 +83,18 @@ const readAppAuthor = (): string => {
   return JSON.stringify(author ?? {});
 };
 
+// One throwaway database per run; workers re-evaluate this file and inherit the path
+const isMainProcess = !process.env["E2E_DB_PATH"];
+if (isMainProcess) {
+  process.env["E2E_DB_PATH"] = join(tmpdir(), `e2e-${Date.now()}-${process.pid}.db`);
+}
+const dbPath = process.env["E2E_DB_PATH"] ?? "";
+if (isMainProcess && reuseExistingServer) {
+  console.warn(
+    "E2E_REUSE_SERVER is on: an already running back keeps its own database, not the isolated one.",
+  );
+}
+
 const backUrl = `http://localhost:${backPort}`;
 const frontUrl = `http://localhost:${frontPort}`;
 
@@ -109,6 +122,7 @@ const workers = resolveWorkers();
 export default defineConfig({
   forbidOnly: Boolean(process.env["CI"]),
   fullyParallel: true,
+  globalTeardown: "./tests/global-teardown.ts",
   outputDir: "./reports/test-results",
   projects: [
     {
@@ -131,7 +145,7 @@ export default defineConfig({
     {
       command: "bun start",
       cwd: backDirectory,
-      env: { PORT: String(backPort) },
+      env: { DB_PATH: dbPath, PORT: String(backPort) },
       reuseExistingServer,
       timeout: serverTimeoutMs,
       url: `${backUrl}/api/health`,

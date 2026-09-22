@@ -64,6 +64,23 @@ process. To reuse an existing server instead, set `E2E_REUSE_SERVER=1` (or `true
 For custom server startup timeout, set `E2E_SERVER_TIMEOUT_MS` (default `15000`
 ms; measured cold start is ~364 ms for back and ~363 ms for front on Windows).
 
+## Test data
+
+Each run starts the back with an empty database: a fresh `e2e-<timestamp>-<pid>.db`
+in the OS temp directory, passed as `DB_PATH`. The back's own `data/demo.db`
+is never touched, and the file (with its `-wal`/`-shm` companions) is deleted
+when the run ends.
+
+Because tests run in parallel and share that database within a run:
+
+- Each test creates the data it needs, with unique identifiers (e.g. a
+  `crypto.randomUUID()` suffix), and never relies on data left by another test.
+- Tests must not depend on execution order.
+- Assert on the records the test created, never on global totals or counts.
+
+With `E2E_REUSE_SERVER` on, an already running back keeps its own database, so
+isolation does not apply; the suite prints a warning.
+
 Directory values may be relative to the E2E directory or absolute.
 
 The expected app title is read from `displayName` (or `name`) in the front
