@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-const APP_TITLE = "Demo Frontend";
+// Set by playwright.config.ts from the front package.json (it throws if missing)
+const APP_TITLE = process.env["E2E_APP_TITLE"] ?? "";
 const PAGES = ["/", "/about", "/items/1", "/no/such/page"];
 
 test.describe("Navigation bar", () => {

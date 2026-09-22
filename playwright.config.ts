@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const DEFAULT_BACK_PORT = 3_100;
@@ -55,11 +55,26 @@ for (const [variable, directory] of [
   }
 }
 
+// The app title comes from the front manifest so tests never hard-code it
+const readAppTitle = (directory: string): string => {
+  const manifestPath = resolve(directory, "package.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+    displayName?: string;
+    name?: string;
+  };
+  const title = manifest.displayName ?? manifest.name;
+  if (!title) {
+    throw new Error(`No displayName or name found in ${manifestPath}.`);
+  }
+  return title;
+};
+
 const backUrl = `http://localhost:${backPort}`;
 const frontUrl = `http://localhost:${frontPort}`;
 
-// Publish the API URL for worker processes to use
+// Publish the API URL and app title for worker processes to use
 process.env["E2E_BACK_URL"] = backUrl;
+process.env["E2E_APP_TITLE"] = readAppTitle(frontDirectory);
 
 const resolveRetries = (): number => {
   if (process.env["CI"]) {

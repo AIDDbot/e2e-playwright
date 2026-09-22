@@ -1,6 +1,7 @@
 import { type Page, expect, test } from "@playwright/test";
 
-const APP_TITLE = "Demo Frontend";
+// Set by playwright.config.ts from the front package.json (it throws if missing)
+const APP_TITLE = process.env["E2E_APP_TITLE"] ?? "";
 
 // A full reload wipes window state, so a surviving marker proves client-side navigation
 const markDocument = async (page: Page): Promise<void> => {

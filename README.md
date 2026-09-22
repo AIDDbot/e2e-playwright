@@ -66,6 +66,9 @@ ms; measured cold start is ~364 ms for back and ~363 ms for front on Windows).
 
 Directory values may be relative to the E2E directory or absolute.
 
+The expected app title is read from `displayName` (or `name`) in the front
+`package.json`, so the tests follow the scaffolded app without edits.
+
 ---
 
 **Author**
