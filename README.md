@@ -41,12 +41,17 @@ front/
 e2e/
 ```
 
-For a different layout or ports, set these environment variables before running
-the suite: `BACK_DIRECTORY`, `FRONT_DIRECTORY`, `E2E_BACK_PORT` (default `3000`),
-and `E2E_FRONT_PORT` (default `4000`).
+For a different layout or ports, set these environment variables (or put them in
+a local `.env`, see `.env.example`): `BACK_DIRECTORY`, `FRONT_DIRECTORY`,
+`E2E_BACK_PORT` (default `3100`), and `E2E_FRONT_PORT` (default `4100`).
+Shell variables take precedence over `.env`.
+
+When developing the archetypes side by side (before scaffolding), copy
+`.env.example` to `.env` so the suite targets `../back-express` and
+`../front-standard`.
 
 The suite will fail immediately if a target port is already occupied by another
-process. To reuse an existing server instead, set `E2E_REUSE_SERVER=1`.
+process. To reuse an existing server instead, set `E2E_REUSE_SERVER=1` (or `true`; default `false`).
 
 For custom server startup timeout, set `E2E_SERVER_TIMEOUT_MS` (default `15000`
 ms; measured cold start is ~364 ms for back and ~363 ms for front on Windows).

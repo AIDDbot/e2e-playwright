@@ -1,21 +1,39 @@
 import { defineConfig, devices } from "@playwright/test";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-const DEFAULT_BACK_PORT = 3_000;
-const DEFAULT_FRONT_PORT = 4_000;
+const DEFAULT_BACK_PORT = 3_100;
+const DEFAULT_FRONT_PORT = 4_100;
 const DEFAULT_SERVER_TIMEOUT_MS = 15_000;
 const DEFAULT_BACK_DIRECTORY = "../back";
 const DEFAULT_FRONT_DIRECTORY = "../front";
+const DEFAULT_REUSE_SERVER = false;
 const CI_RETRIES = 2;
 const LOCAL_RETRIES = 0;
 const CI_WORKERS = 1;
+
+// Optional local overrides (e.g. sibling archetype folders before scaffolding)
+if (existsSync(".env")) {
+  process.loadEnvFile(".env");
+}
 
 const resolveNumber = (variable: string, fallback: number): number => {
   const value = Number.parseInt(process.env[variable] ?? "", 10);
   return Number.isNaN(value) ? fallback : value;
 };
 
-const reuseExistingServer = Boolean(process.env["E2E_REUSE_SERVER"]);
+const resolveBoolean = (variable: string, fallback: boolean): boolean => {
+  const value = process.env[variable]?.trim().toLowerCase();
+  if (value === "1" || value === "true") {
+    return true;
+  }
+  if (value === "0" || value === "false") {
+    return false;
+  }
+  return fallback;
+};
+
+const reuseExistingServer = resolveBoolean("E2E_REUSE_SERVER", DEFAULT_REUSE_SERVER);
 const backPort = resolveNumber("E2E_BACK_PORT", DEFAULT_BACK_PORT);
 const frontPort = resolveNumber("E2E_FRONT_PORT", DEFAULT_FRONT_PORT);
 const serverTimeoutMs = resolveNumber("E2E_SERVER_TIMEOUT_MS", DEFAULT_SERVER_TIMEOUT_MS);
@@ -27,6 +45,16 @@ const frontDirectory = resolve(
   process.cwd(),
   process.env["FRONT_DIRECTORY"] ?? DEFAULT_FRONT_DIRECTORY,
 );
+// Fail fast: on Windows a missing cwd surfaces as a misleading "spawn cmd.exe ENOENT"
+for (const [variable, directory] of [
+  ["BACK_DIRECTORY", backDirectory],
+  ["FRONT_DIRECTORY", frontDirectory],
+] as const) {
+  if (!existsSync(directory)) {
+    throw new Error(`Target directory not found: ${directory}. Set ${variable} to fix it.`);
+  }
+}
+
 const backUrl = `http://localhost:${backPort}`;
 const frontUrl = `http://localhost:${frontPort}`;
 
@@ -65,6 +93,7 @@ export default defineConfig({
   ],
   retries: resolveRetries(),
   testDir: "./tests",
+  testMatch: "**/*.test.ts",
   use: {
     baseURL: frontUrl,
     trace: "on-first-retry",
