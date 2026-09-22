@@ -5,7 +5,7 @@ End-to-end Playwright suite for an api and web application.
 ## Quick start
 
 > [!IMPORTANT]
-> this projects uses `bun` as a package manager and runner.
+> This project uses `bun` as a package manager and runner.
 
 1. Install bun: the fastest tooling manager for Node.js projects.
 
@@ -25,9 +25,17 @@ bun upgrade --stable
 
 ```bash
 bun install
-bun lint            # runs the linter
+bun lint            # type-checks the project (tsc --noEmit)
+bun format          # formats the code (oxfmt)
 bun test:e2e        # runs the tests
 bun test:e2e:report # opens the last HTML report
+```
+
+## Project structure
+
+```text
+tests/      # one suite per feature; only *.test.ts files are run
+reports/    # HTML and JSON reports (generated)
 ```
 
 ## Target applications
@@ -60,7 +68,7 @@ Directory values may be relative to the E2E directory or absolute.
 
 ---
 
--**Author**
+**Author**
 
 - [Alberto Basalo](https://albertobasalo.dev)
 - [GitHub](https://github.com/AIDDbot/AIDDbot)
