@@ -34,7 +34,12 @@ bun test:e2e:report # opens the last HTML report
 ## Project structure
 
 ```text
-tests/      # one suite per feature; only *.test.ts files are run
+tests/
+  api/      # API contract tests (*.spec.ts)
+  e2e/      # user journeys grouped by feature (*.spec.ts)
+  fixtures/ # static JSON data and TypeScript-generated values
+  pages/    # page objects shared by UI tests
+  support/  # server startup checks, launcher and Playwright teardown
 reports/    # HTML and JSON reports (generated)
 ```
 
@@ -44,8 +49,7 @@ reports/    # HTML and JSON reports (generated)
 > This project is meant to be used alongside the sibling API and web applications.
 
 Backend with Express: https://github.com/AIDDbot/back-express
-Frontend with Standard web: https://github.com/AIDDbot/front-standard 
-
+Frontend with Standard web: https://github.com/AIDDbot/front-standard
 
 `bun test:e2e` starts the sibling API and web applications automatically. Run
 it from the `e2e` directory in the default scaffold layout:
@@ -76,7 +80,7 @@ ms; measured cold start is ~364 ms for back and ~363 ms for front on Windows).
 Before starting the servers, the suite checks settings, target folders and
 `package.json` files (a `start` script, installed dependencies), `bun`, the
 Chromium browser, free ports and write access. Each server is then started
-through `tests/start-target.ts`, which explains a crash or a timeout (for
+through `tests/support/start-target.ts`, which explains a crash or a timeout (for
 example, nothing listening on `PORT`, or another app answering the health URL).
 
 Every problem is printed in the same shape, so a person or an agent can search

@@ -2,8 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { runPreflight } from "./tests/preflight.js";
-import { formatStartupProblems } from "./tests/startup-problems.js";
+import { runPreflight } from "./tests/support/preflight.js";
+import { formatStartupProblems } from "./tests/support/startup-problems.js";
 
 const DEFAULT_BACK_PORT = 3_100;
 const DEFAULT_FRONT_PORT = 4_100;
@@ -17,7 +17,7 @@ const CI_WORKERS = 1;
 const PREFLIGHT_EXIT_CODE = 1;
 // Extra time so the launcher reports its own, more precise timeout first
 const LAUNCHER_GRACE_MS = 5_000;
-const launcherPath = resolve(import.meta.dirname, "tests", "start-target.ts");
+const launcherPath = resolve(import.meta.dirname, "tests", "support", "start-target.ts");
 
 // Optional local overrides (e.g. sibling archetype folders before scaffolding)
 if (existsSync(".env")) {
@@ -157,7 +157,7 @@ const workers = resolveWorkers();
 export default defineConfig({
   forbidOnly: Boolean(process.env["CI"]),
   fullyParallel: true,
-  globalTeardown: "./tests/global-teardown.ts",
+  globalTeardown: "./tests/support/global-teardown.ts",
   outputDir: "./reports/test-results",
   projects: [
     {
@@ -171,10 +171,12 @@ export default defineConfig({
   ],
   retries: resolveRetries(),
   testDir: "./tests",
-  testMatch: "**/*.test.ts",
+  testMatch: "**/*.spec.ts",
   use: {
     baseURL: frontUrl,
+    screenshot: "only-on-failure",
     trace: "on-first-retry",
+    video: "retain-on-failure",
   },
   webServer: [
     {
