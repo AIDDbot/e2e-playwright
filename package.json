@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "description": "End-to-end Playwright suite for api and web applications",
   "license": "MIT",
+  "homepage": "https://aiddbot.com",
+  "repository": "https://github.com/aiddbot/",
   "author": {
     "name": "Alberto Basalo",
-    "email": "albertobasalo@aicode.academy",
-    "url": "https://aicode.academy"
+    "url": "https://x.com/albertobasalo"
   },
   "type": "module",
   "scripts": {

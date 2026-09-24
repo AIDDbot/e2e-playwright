@@ -40,6 +40,13 @@ reports/    # HTML and JSON reports (generated)
 
 ## Target applications
 
+> [!IMPORTANT]
+> This project is meant to be used alongside the sibling API and web applications.
+
+Backend with Express: https://github.com/AIDDbot/back-express
+Frontend with Standard web: https://github.com/AIDDbot/front-standard 
+
+
 `bun test:e2e` starts the sibling API and web applications automatically. Run
 it from the `e2e` directory in the default scaffold layout:
 

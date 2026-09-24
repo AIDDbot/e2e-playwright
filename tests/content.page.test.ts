@@ -19,13 +19,13 @@ const AUTHOR_EMAIL = APP_AUTHOR.email ?? "";
 const isWebUrl = (value: string): boolean => /^https?:\/\//iu.test(value);
 
 test.describe("Home page", () => {
-  test("AC-CNT-01 shows title, welcome message and the Engineering links", async ({ page }) => {
+  test("AC-CNT-01 shows title, trust message and the Archetypes links", async ({ page }) => {
     await page.goto("/");
 
     const main = page.getByRole("main");
     await expect(main.getByRole("heading", { level: 1, name: APP_TITLE })).toBeVisible();
-    await expect(main.getByText(/welcome/i)).toBeVisible();
-    await expect(main.getByRole("heading", { level: 2, name: "Engineering" })).toBeVisible();
+    await expect(main.getByText(/trust/i)).toBeVisible();
+    await expect(main.getByRole("heading", { level: 2, name: "Archetypes" })).toBeVisible();
 
     const links = main.getByRole("listitem").getByRole("link");
     await expect(links).toHaveCount(ITEM_COUNT);
