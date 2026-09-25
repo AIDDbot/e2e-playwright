@@ -51,8 +51,11 @@ reports/    # HTML and JSON reports (generated)
 Backend with Express: https://github.com/AIDDbot/back-express
 Frontend with Standard web: https://github.com/AIDDbot/front-standard
 
-`bun test:e2e` starts the sibling API and web applications automatically. Run
-it from the `e2e` directory in the default scaffold layout:
+`bun test:e2e` uses whatever is already listening on the API and web ports. It
+starts a sibling project only when that port is silent and the folder is there
+(`../back` and `../front` in the scaffold layout below). If a server is already
+open somewhere else, its folder is not required. The app title then comes from
+the page `<title>` when the front `package.json` is not available.
 
 ```text
 back/
@@ -62,15 +65,15 @@ e2e/
 
 For a different layout or ports, set these environment variables (or put them in
 a local `.env`, see `.env.example`): `BACK_DIRECTORY`, `FRONT_DIRECTORY`,
-`E2E_BACK_PORT` (default `3100`), and `E2E_FRONT_PORT` (default `4100`).
+`E2E_BACK_PORT` (default `3000`), and `E2E_FRONT_PORT` (default `4000`).
 Shell variables take precedence over `.env`.
 
 When developing the archetypes side by side (before scaffolding), copy
 `.env.example` to `.env` so the suite targets `../back-express` and
 `../front-standard`.
 
-The suite will fail immediately if a target port is already occupied by another
-process. To reuse an existing server instead, set `E2E_REUSE_SERVER=1` (or `true`; default `false`).
+If a port is taken by something that does not answer the expected URL, the suite
+stops and names that process. A server that already answers is left running.
 
 For custom server startup timeout, set `E2E_SERVER_TIMEOUT_MS` (default `15000`
 ms; measured cold start is ~364 ms for back and ~363 ms for front on Windows).
@@ -89,8 +92,8 @@ the output for `E2E startup failed:` and apply the fix:
 ```text
 E2E startup failed: 1 problem(s) found before starting the servers
 
-1. [port] Port 4100 (front) is already in use by PID 28148 (bun.exe).
-   Fix: Stop that process ("taskkill /PID 28148 /F"), set E2E_FRONT_PORT to a free port, or set E2E_REUSE_SERVER=1 if it is the front you want to test.
+1. [port] Port 4000 (front) is already in use by PID 28148 (bun.exe).
+   Fix: Stop that process ("taskkill /PID 28148 /F"), or set E2E_FRONT_PORT to a free port. A front you want to keep must already answer http://localhost:4000.
 ```
 
 The area tag is one of `settings`, `back`, `front`, `tooling`, `port` or
@@ -110,8 +113,8 @@ Because tests run in parallel and share that database within a run:
 - Tests must not depend on execution order.
 - Assert on the records the test created, never on global totals or counts.
 
-With `E2E_REUSE_SERVER` on, an already running back keeps its own database, so
-isolation does not apply; the suite prints a warning.
+When the back is already running, it keeps its own database, so isolation does
+not apply; the suite prints a warning.
 
 Directory values may be relative to the E2E directory or absolute.
 

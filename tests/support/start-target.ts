@@ -68,7 +68,7 @@ const diagnoseCrash = (code: number | null): Pick<StartupProblem, "area" | "fix"
   if (/EADDRINUSE|address already in use|port \d+ is (already )?in use/i.test(output)) {
     return {
       area: "port",
-      fix: `Free port ${port}, set ${portVariable} to another port, or set E2E_REUSE_SERVER=1 to reuse the running ${name}.`,
+      fix: `Free port ${port}, or set ${portVariable} to another port.`,
     };
   }
   if (/EACCES|EPERM|permission denied|access is denied/i.test(output)) {

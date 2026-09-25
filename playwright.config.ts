@@ -5,12 +5,11 @@ import { join, resolve } from "node:path";
 import { runPreflight } from "./tests/support/preflight.js";
 import { formatStartupProblems } from "./tests/support/startup-problems.js";
 
-const DEFAULT_BACK_PORT = 3_100;
-const DEFAULT_FRONT_PORT = 4_100;
+const DEFAULT_BACK_PORT = 3_000;
+const DEFAULT_FRONT_PORT = 4_000;
 const DEFAULT_SERVER_TIMEOUT_MS = 15_000;
 const DEFAULT_BACK_DIRECTORY = "../back";
 const DEFAULT_FRONT_DIRECTORY = "../front";
-const DEFAULT_REUSE_SERVER = false;
 const CI_RETRIES = 2;
 const LOCAL_RETRIES = 0;
 const CI_WORKERS = 1;
@@ -29,18 +28,6 @@ const resolveNumber = (variable: string, fallback: number): number => {
   return Number.isNaN(value) ? fallback : value;
 };
 
-const resolveBoolean = (variable: string, fallback: boolean): boolean => {
-  const value = process.env[variable]?.trim().toLowerCase();
-  if (value === "1" || value === "true") {
-    return true;
-  }
-  if (value === "0" || value === "false") {
-    return false;
-  }
-  return fallback;
-};
-
-const reuseExistingServer = resolveBoolean("E2E_REUSE_SERVER", DEFAULT_REUSE_SERVER);
 const backPort = resolveNumber("E2E_BACK_PORT", DEFAULT_BACK_PORT);
 const frontPort = resolveNumber("E2E_FRONT_PORT", DEFAULT_FRONT_PORT);
 const serverTimeoutMs = resolveNumber("E2E_SERVER_TIMEOUT_MS", DEFAULT_SERVER_TIMEOUT_MS);
@@ -52,13 +39,19 @@ const frontDirectory = resolve(
   process.cwd(),
   process.env["FRONT_DIRECTORY"] ?? DEFAULT_FRONT_DIRECTORY,
 );
-// Workers re-evaluate this file and inherit E2E_DB_PATH from the main process
-const isMainProcess = !process.env["E2E_DB_PATH"];
+const backUrl = `http://localhost:${backPort}`;
+const frontUrl = `http://localhost:${frontPort}`;
 
-// Fail fast with every cause and its fix, instead of Playwright's generic webServer errors
+// Workers re-evaluate this file and inherit E2E_CONFIGURED from the main process
+const isMainProcess = !process.env["E2E_CONFIGURED"];
+
+// Fail fast with every cause and its fix, instead of Playwright's generic webServer errors.
+// A URL that already answers is kept; only the silent targets are launched.
+const launch = new Set(
+  (process.env["E2E_LAUNCH"] ?? "").split(",").filter((name) => name.length > 0),
+);
 if (isMainProcess) {
-  const problems = await runPreflight({
-    reuseExistingServer,
+  const result = await runPreflight({
     targets: [
       {
         directory: backDirectory,
@@ -66,6 +59,7 @@ if (isMainProcess) {
         name: "back",
         port: backPort,
         portVariable: "E2E_BACK_PORT",
+        readyUrl: `${backUrl}/api/health`,
       },
       {
         directory: frontDirectory,
@@ -73,13 +67,18 @@ if (isMainProcess) {
         name: "front",
         port: frontPort,
         portVariable: "E2E_FRONT_PORT",
+        readyUrl: frontUrl,
       },
     ],
   });
-  if (problems.length > 0) {
-    const title = `${problems.length} problem(s) found before starting the servers`;
-    console.error(formatStartupProblems(title, problems));
+  if (result.problems.length > 0) {
+    const title = `${result.problems.length} problem(s) found before starting the servers`;
+    console.error(formatStartupProblems(title, result.problems));
     process.exit(PREFLIGHT_EXIT_CODE);
+  }
+  process.env["E2E_LAUNCH"] = result.launch.join(",");
+  for (const name of result.launch) {
+    launch.add(name);
   }
 }
 
@@ -89,45 +88,72 @@ interface FrontManifest {
   name?: string;
 }
 
-// App title and author come from the front manifest so tests never hard-code them
+// App title and author come from the front manifest so tests never hard-code them.
+// When that folder is absent, the running page <title> is used instead.
 const frontManifestPath = resolve(frontDirectory, "package.json");
-const frontManifest = JSON.parse(readFileSync(frontManifestPath, "utf8")) as FrontManifest;
 
-const readAppTitle = (): string => {
-  const title = frontManifest.displayName ?? frontManifest.name;
+const readFrontManifest = (): FrontManifest | undefined => {
+  if (!existsSync(frontManifestPath)) {
+    return undefined;
+  }
+  return JSON.parse(readFileSync(frontManifestPath, "utf8")) as FrontManifest;
+};
+
+const readLiveTitle = async (): Promise<string> => {
+  const explicit = process.env["E2E_APP_TITLE"]?.trim();
+  if (explicit) {
+    return explicit;
+  }
+  const response = await fetch(frontUrl, { signal: AbortSignal.timeout(2_000) });
+  const html = await response.text();
+  const title = /<title[^>]*>([^<]*)<\/title>/iu.exec(html)?.[1]?.trim();
   if (!title) {
-    throw new Error(`No displayName or name found in ${frontManifestPath}.`);
+    throw new Error(
+      `The front at ${frontUrl} has no <title>, and ${frontManifestPath} was not found. Set E2E_APP_TITLE or FRONT_DIRECTORY.`,
+    );
   }
   return title;
 };
 
+const readAppTitle = async (manifest: FrontManifest | undefined): Promise<string> => {
+  const title = manifest?.displayName ?? manifest?.name;
+  if (title) {
+    return title;
+  }
+  if (!launch.has("front")) {
+    return readLiveTitle();
+  }
+  throw new Error(`No displayName or name found in ${frontManifestPath}.`);
+};
+
 // Normalized as an object; the "Name <email> (url)" string form is not parsed
-const readAppAuthor = (): string => {
-  const { author } = frontManifest;
+const readAppAuthor = (manifest: FrontManifest | undefined): string => {
+  const { author } = manifest ?? {};
   if (typeof author === "string") {
     return JSON.stringify({ name: author });
   }
   return JSON.stringify(author ?? {});
 };
 
-// One throwaway database per run
+const frontManifest = readFrontManifest();
+
+// One throwaway database per run, only when this suite starts the back.
 if (isMainProcess) {
-  process.env["E2E_DB_PATH"] = join(tmpdir(), `e2e-${Date.now()}-${process.pid}.db`);
+  process.env["E2E_CONFIGURED"] = "1";
+  if (launch.has("back")) {
+    process.env["E2E_DB_PATH"] = join(tmpdir(), `e2e-${Date.now()}-${process.pid}.db`);
+  } else {
+    console.warn(
+      `Using the back already running at ${backUrl}. It keeps its own database.`,
+    );
+  }
 }
 const dbPath = process.env["E2E_DB_PATH"] ?? "";
-if (isMainProcess && reuseExistingServer) {
-  console.warn(
-    "E2E_REUSE_SERVER is on: an already running back keeps its own database, not the isolated one.",
-  );
-}
-
-const backUrl = `http://localhost:${backPort}`;
-const frontUrl = `http://localhost:${frontPort}`;
 
 // Publish the API URL, app title and author for worker processes to use
 process.env["E2E_BACK_URL"] = backUrl;
-process.env["E2E_APP_TITLE"] = readAppTitle();
-process.env["E2E_APP_AUTHOR"] = readAppAuthor();
+process.env["E2E_APP_TITLE"] = await readAppTitle(frontManifest);
+process.env["E2E_APP_AUTHOR"] = readAppAuthor(frontManifest);
 
 // Runs "bun start" through the launcher, which explains crashes and timeouts
 const launchCommand = (
@@ -178,25 +204,36 @@ export default defineConfig({
     trace: "on-first-retry",
     video: "retain-on-failure",
   },
-  webServer: [
-    {
-      command: launchCommand("back", `${backUrl}/api/health`, "E2E_BACK_PORT", "BACK_DIRECTORY"),
-      cwd: backDirectory,
-      env: { DB_PATH: dbPath, PORT: String(backPort) },
-      name: "back",
-      reuseExistingServer,
-      timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
-      url: `${backUrl}/api/health`,
-    },
-    {
-      command: launchCommand("front", frontUrl, "E2E_FRONT_PORT", "FRONT_DIRECTORY"),
-      cwd: frontDirectory,
-      env: { API_BASE_URL: backUrl, PORT: String(frontPort) },
-      name: "front",
-      reuseExistingServer,
-      timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
-      url: frontUrl,
-    },
-  ],
+  ...(launch.size === 0
+    ? {}
+    : {
+      webServer: [
+        launch.has("back")
+          ? {
+            command: launchCommand(
+              "back",
+              `${backUrl}/api/health`,
+              "E2E_BACK_PORT",
+              "BACK_DIRECTORY",
+            ),
+            cwd: backDirectory,
+            env: { DB_PATH: dbPath, PORT: String(backPort) },
+            name: "back",
+            timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
+            url: `${backUrl}/api/health`,
+          }
+          : undefined,
+        launch.has("front")
+          ? {
+            command: launchCommand("front", frontUrl, "E2E_FRONT_PORT", "FRONT_DIRECTORY"),
+            cwd: frontDirectory,
+            env: { API_BASE_URL: backUrl, PORT: String(frontPort) },
+            name: "front",
+            timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
+            url: frontUrl,
+          }
+          : undefined,
+      ].filter((server) => server !== undefined),
+    }),
   ...(workers === undefined ? {} : { workers }),
 });

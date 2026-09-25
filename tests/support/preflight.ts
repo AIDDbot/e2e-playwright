@@ -12,19 +12,25 @@ export interface TargetSettings {
   directoryVariable: string;
   port: number;
   portVariable: string;
+  readyUrl: string;
 }
 
 export interface PreflightSettings {
-  reuseExistingServer: boolean;
   targets: TargetSettings[];
 }
 
+export interface PreflightResult {
+  problems: StartupProblem[];
+  launch: string[];
+}
+
 const PORT_PROBE_TIMEOUT_MS = 500;
+const LIVE_PROBE_TIMEOUT_MS = 2_000;
+const READY_STATUS_MIN = 200;
+const READY_STATUS_MAX = 403;
 const MAX_PORT = 65_535;
 const NUMBER_SETTINGS = ["E2E_BACK_PORT", "E2E_FRONT_PORT", "E2E_SERVER_TIMEOUT_MS"];
 const PORT_SETTINGS = new Set(["E2E_BACK_PORT", "E2E_FRONT_PORT"]);
-const BOOLEAN_VALUES = new Set(["", "0", "1", "false", "true"]);
-
 // Invalid values would otherwise fall back to the defaults without notice
 const checkSettings = (): StartupProblem[] => {
   const problems: StartupProblem[] = [];
@@ -42,14 +48,6 @@ const checkSettings = (): StartupProblem[] => {
         fix: `Correct or remove ${variable} in the shell or in .env.`,
       });
     }
-  }
-  const reuse = process.env["E2E_REUSE_SERVER"]?.trim().toLowerCase() ?? "";
-  if (!BOOLEAN_VALUES.has(reuse)) {
-    problems.push({
-      area: "settings",
-      cause: `E2E_REUSE_SERVER="${process.env["E2E_REUSE_SERVER"]}" is not one of 1, 0, true, false.`,
-      fix: "Correct or remove E2E_REUSE_SERVER in the shell or in .env.",
-    });
   }
   return problems;
 };
@@ -79,8 +77,8 @@ const checkTarget = (target: TargetSettings): StartupProblem[] => {
     return [
       {
         area: target.name,
-        cause: `Target directory not found: ${target.directory}.`,
-        fix: `Set ${target.directoryVariable} (shell or .env) to the ${target.name} folder, relative to this directory or absolute.`,
+        cause: `Nothing answered ${target.readyUrl}, and ${target.directory} was not found.`,
+        fix: `Start the ${target.name} on that URL, or set ${target.directoryVariable} (shell or .env) so this suite can launch it.`,
       },
     ];
   }
@@ -180,7 +178,7 @@ const describeBusyPort = (target: TargetSettings): StartupProblem => {
   return {
     area: "port",
     cause: `Port ${target.port} (${target.name}) is already in use${holder}.`,
-    fix: `Stop that process ("${kill}"), set ${target.portVariable} to a free port, or set E2E_REUSE_SERVER=1 if it is the ${target.name} you want to test.`,
+    fix: `Stop that process ("${kill}"), or set ${target.portVariable} to a free port. A ${target.name} you want to keep must already answer ${target.readyUrl}.`,
   };
 };
 
@@ -208,23 +206,13 @@ const checkPort = async (target: TargetSettings): Promise<StartupProblem[]> => {
   ];
 };
 
-const checkPorts = async (settings: PreflightSettings): Promise<StartupProblem[]> => {
-  const [first, second] = settings.targets;
-  if (first && second && first.port === second.port) {
-    return [
-      {
-        area: "port",
-        cause: `${first.name} and ${second.name} are both set to port ${first.port}.`,
-        fix: `Give ${first.portVariable} and ${second.portVariable} different values.`,
-      },
-    ];
+const isUrlReady = async (url: string): Promise<boolean> => {
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(LIVE_PROBE_TIMEOUT_MS) });
+    return response.status >= READY_STATUS_MIN && response.status <= READY_STATUS_MAX;
+  } catch {
+    return false;
   }
-  // A reused server is expected to be listening already
-  if (settings.reuseExistingServer) {
-    return [];
-  }
-  const results = await Promise.all(settings.targets.map(checkPort));
-  return results.flat();
 };
 
 const checkCommand = (command: string, fix: string): StartupProblem[] => {
@@ -279,20 +267,49 @@ const checkWritable = (): StartupProblem[] => {
   return problems;
 };
 
-// Checks everything the web servers need before Playwright starts them
-export const runPreflight = async (settings: PreflightSettings): Promise<StartupProblem[]> => {
+const samePortProblem = (targets: TargetSettings[]): StartupProblem[] => {
+  const [first, second] = targets;
+  if (!first || !second || first.port !== second.port) {
+    return [];
+  }
+  return [
+    {
+      area: "port",
+      cause: `${first.name} and ${second.name} are both set to port ${first.port}.`,
+      fix: `Give ${first.portVariable} and ${second.portVariable} different values.`,
+    },
+  ];
+};
+
+// A target whose URL already answers is used as-is. The others are started from their folder.
+export const runPreflight = async (settings: PreflightSettings): Promise<PreflightResult> => {
   const settingsProblems = checkSettings();
-  const targetProblems = settings.targets.flatMap(checkTarget);
+  const portClash = samePortProblem(settings.targets);
+  const launch: string[] = [];
+  const targetProblems: StartupProblem[] = [];
+  if (settingsProblems.length === 0 && portClash.length === 0) {
+    for (const target of settings.targets) {
+      if (await isUrlReady(target.readyUrl)) {
+        continue;
+      }
+      launch.push(target.name);
+      targetProblems.push(...checkTarget(target), ...(await checkPort(target)));
+    }
+  }
   const toolingProblems = [
-    ...checkCommand("bun", 'Install bun (see README "Quick start") and reopen the terminal.'),
+    ...(launch.length === 0
+      ? []
+      : checkCommand("bun", 'Install bun (see README "Quick start") and reopen the terminal.')),
     ...checkBrowser(),
   ];
-  const portProblems = settingsProblems.length > 0 ? [] : await checkPorts(settings);
-  return [
-    ...settingsProblems,
-    ...targetProblems,
-    ...toolingProblems,
-    ...portProblems,
-    ...checkWritable(),
-  ];
+  return {
+    launch,
+    problems: [
+      ...settingsProblems,
+      ...portClash,
+      ...targetProblems,
+      ...toolingProblems,
+      ...checkWritable(),
+    ],
+  };
 };
