@@ -82,8 +82,12 @@ test.describe("About page", () => {
     });
   }
 
+  // Skipped by design when the author omits a field; each skip message says how to enable it
   test.describe("Author", () => {
-    test.skip(!AUTHOR_NAME, "The front package.json declares no author name");
+    test.skip(
+      !AUTHOR_NAME,
+      "No author name in front/package.json. Set author (or author.name) there to enable",
+    );
 
     test("AC-CNT-06 shows the author name from package.json", async ({ page }) => {
       const content = new ContentPage(page);
@@ -93,7 +97,10 @@ test.describe("About page", () => {
     });
 
     test("AC-CNT-07 links the author name to its web url in a new tab", async ({ page }) => {
-      test.skip(!isWebUrl(AUTHOR_URL), "The front package.json declares no http(s) author url");
+      test.skip(
+        !isWebUrl(AUTHOR_URL),
+        "No http(s) author url in front/package.json. Set author as { name, url } there to enable",
+      );
 
       const content = new ContentPage(page);
       await content.goto("/about");
@@ -105,7 +112,10 @@ test.describe("About page", () => {
     });
 
     test("AC-CNT-08 never exposes the author email", async ({ page }) => {
-      test.skip(!AUTHOR_EMAIL, "The front package.json declares no author email");
+      test.skip(
+        !AUTHOR_EMAIL,
+        "No author email in front/package.json. Set author as { name, email } there to enable",
+      );
 
       const content = new ContentPage(page);
       await content.goto("/about");
