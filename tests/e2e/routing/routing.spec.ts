@@ -1,4 +1,4 @@
-import { type Page, expect, test } from "@playwright/test";
+import { type Page, type Request, expect, test } from "@playwright/test";
 import { ContentPage } from "../../pages/content.page.js";
 import { NavigationPage } from "../../pages/navigation.page.js";
 
@@ -83,6 +83,75 @@ test.describe("Direct access", () => {
       await page.reload();
       await expect(page).toHaveURL(path);
       await expect(content.heading()).toHaveText(heading);
+    });
+  }
+});
+
+test.describe("Assets on direct access", () => {
+  const HTTP_OK = 200;
+  const THEME_STYLESHEET = "/styles/theme.css";
+  // Declared as --ab-main-max-width in theme.css
+  const THEME_TOKEN = "64rem";
+  const routes = [
+    { heading: APP_TITLE, path: "/" },
+    { heading: "Item #42", path: "/items/42" },
+  ];
+
+  // Outcome per requested stylesheet: its status, or why it got none
+  type StylesheetLog = Map<Request, number | string>;
+
+  // Chromium aborts a stylesheet answered with a 404 page, so requests are tracked, not only responses
+  const logStylesheets = (page: Page): StylesheetLog => {
+    const log: StylesheetLog = new Map();
+    page.on("request", (request) => {
+      if (request.resourceType() === "stylesheet") log.set(request, "no response");
+    });
+    page.on("response", (response) => {
+      if (log.has(response.request())) log.set(response.request(), response.status());
+    });
+    page.on("requestfailed", (request) => {
+      if (log.has(request)) log.set(request, request.failure()?.errorText ?? "failed");
+    });
+    return log;
+  };
+
+  // Relative hrefs resolve against nested routes and 404, while the page content still renders
+  const expectStyledPage = async (
+    content: ContentPage,
+    page: Page,
+    log: StylesheetLog,
+  ): Promise<void> => {
+    const outcomes = [...log].map(([request, outcome]) => ({
+      outcome,
+      path: new URL(request.url()).pathname,
+    }));
+    expect(outcomes.filter(({ outcome }) => outcome !== HTTP_OK)).toEqual([]);
+    expect(outcomes.map(({ path }) => path)).toContain(THEME_STYLESHEET);
+
+    const icon = await page.request.get(await content.iconUrl());
+    expect(icon.status(), `GET ${icon.url()}`).toBe(HTTP_OK);
+    expect(new URL(icon.url()).pathname).toBe("/logo.png");
+
+    expect(await content.themeToken()).toBe(THEME_TOKEN);
+  };
+
+  for (const { heading, path } of routes) {
+    test(`AC-RTE-05 loads stylesheets and logo for ${path} when opened by URL and reloaded`, async ({
+      page,
+    }) => {
+      // Routing disables the HTTP cache, so the reload fetches again instead of answering 304
+      await page.route("**/*", async (route) => route.continue());
+      const stylesheets = logStylesheets(page);
+      const content = new ContentPage(page);
+
+      await content.goto(path);
+      await expect(content.heading()).toHaveText(heading);
+      await expectStyledPage(content, page, stylesheets);
+
+      stylesheets.clear();
+      await page.reload();
+      await expect(content.heading()).toHaveText(heading);
+      await expectStyledPage(content, page, stylesheets);
     });
   }
 });

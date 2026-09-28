@@ -8,6 +8,7 @@ export class ContentPage extends BasePage {
   readonly itemLinks: Locator;
   readonly healthSummary: Locator;
   readonly healthUnavailableMessage: Locator;
+  readonly icon: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -17,10 +18,23 @@ export class ContentPage extends BasePage {
     this.itemLinks = this.main.getByRole("listitem").getByRole("link");
     this.healthSummary = page.getByText(/Server up for \d+s — \d+ run\(s\) recorded\./);
     this.healthUnavailableMessage = page.getByText("Health unavailable.");
+    this.icon = page.locator('link[rel="icon"]');
   }
 
   async goto(path: string): Promise<void> {
     await this.navigate(path);
+  }
+
+  /** Absolute URL of the favicon, resolved against the current route like the browser does. */
+  async iconUrl(): Promise<string> {
+    return this.icon.evaluate((link: HTMLLinkElement) => link.href);
+  }
+
+  /** A custom property declared only in theme.css; empty when that stylesheet did not apply. */
+  async themeToken(): Promise<string> {
+    return this.page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--ab-main-max-width").trim(),
+    );
   }
 
   heading(level: 1 | 2 = 1): Locator {
