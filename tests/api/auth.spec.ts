@@ -5,6 +5,7 @@ import { uniqueEmail } from "../fixtures/test-data.js";
 const BACK_URL = process.env["E2E_BACK_URL"];
 const REGISTER_PATH = "/api/auth/register";
 const LOGIN_PATH = "/api/auth/login";
+const ME_PATH = "/api/auth/me";
 interface AuthUser {
   id: number;
   email: string;
@@ -23,6 +24,11 @@ const registerUser = async (request: APIRequestContext, body: Readonly<Record<st
 
 const loginUser = async (request: APIRequestContext, body: Readonly<Record<string, unknown>>) =>
   request.post(`${BACK_URL}${LOGIN_PATH}`, { data: body });
+
+const getMe = async (request: APIRequestContext, authorization?: string) =>
+  request.get(`${BACK_URL}${ME_PATH}`, {
+    headers: authorization === undefined ? {} : { Authorization: authorization },
+  });
 
 test.describe("Auth API — register", () => {
   test("AC-AUT-01 registers with 201 and the normalized user, role always user", async ({
@@ -190,5 +196,53 @@ test.describe("Auth API — login", () => {
     expect(unknownEmail.status()).toBe(401);
     const unknownEmailBody = (await unknownEmail.json()) as { error: string };
     expect(unknownEmailBody.error).toBe(authFixture.messages.invalidCredentials);
+  });
+});
+
+test.describe("Auth API — session guard", () => {
+  const rejected = [
+    { authorization: undefined, name: "without an Authorization header" },
+    { authorization: "Token abc", name: "with a non-Bearer scheme" },
+    { authorization: "Bearer", name: "with a Bearer header and no token" },
+    { authorization: "Bearer unknown-session-token", name: "with an unknown token" },
+  ];
+
+  for (const { authorization, name } of rejected) {
+    test(`AC-AUT-14 rejects GET /api/auth/me ${name} with 401 and an error body`, async ({
+      request,
+    }) => {
+      const response = await getMe(request, authorization);
+
+      expect(response.status()).toBe(401);
+      const body = (await response.json()) as { error: unknown };
+      expect(body.error).toEqual(expect.any(String));
+      expect(body.error).not.toBe("");
+    });
+  }
+
+  test("AC-AUT-15 returns the logged-in public user for its Bearer token", async ({ request }) => {
+    const email = uniqueEmail("me");
+    const registerResponse = await registerUser(request, {
+      email,
+      name: authFixture.users.ada.name,
+      password: authFixture.users.ada.password,
+    });
+    expect(registerResponse.status()).toBe(201);
+    const loginResponse = await loginUser(request, {
+      email,
+      password: authFixture.users.ada.password,
+    });
+    expect(loginResponse.status()).toBe(200);
+    const session = (await loginResponse.json()) as AuthSession;
+
+    const response = await getMe(request, `Bearer ${session.token}`);
+
+    expect(response.status()).toBe(200);
+    const user = (await response.json()) as AuthUser;
+    expect(user).toEqual(session.user);
+    expect(user.email).toBe(email);
+    expect(user).not.toHaveProperty("password");
+    expect(user).not.toHaveProperty("passwordHash");
+    expect(user).not.toHaveProperty("password_hash");
   });
 });
