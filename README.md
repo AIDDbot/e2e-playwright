@@ -25,9 +25,10 @@ bun upgrade --stable
 
 ```bash
 bun install
-bun lint            # type-checks the project (tsc --noEmit)
-bun format          # formats the code (oxfmt)
-bun test:e2e        # runs the tests
+bun lint            # lints and type-checks (oxlint with Playwright rules and tsgolint), errors only
+bun fix             # applies lint fixes and formats the code (oxfmt)
+bun quality:all     # fails on any warning or on complexity limits (.oxlintrc.complexity.json)
+bun test:e2e        # runs the tests (dot output without a terminal, e.g. agents and CI)
 bun test:e2e:report # opens the last HTML report
 ```
 
@@ -35,13 +36,35 @@ bun test:e2e:report # opens the last HTML report
 
 ```text
 tests/
-  api/      # API contract tests (*.spec.ts)
-  e2e/      # user journeys grouped by feature (*.spec.ts)
-  fixtures/ # static JSON data and TypeScript-generated values
-  pages/    # page objects shared by UI tests
-  support/  # server startup checks, launcher and Playwright teardown
+  api/       # API contract tests (*.spec.ts), "api" project, no browser
+  e2e/       # user journeys grouped by feature (*.spec.ts), "e2e" project
+  fixtures/  # Playwright fixtures: specs import test and expect from here
+  clients/   # typed API clients, to test the API or arrange data for UI tests
+  pages/     # page objects: AppPage (shared layout), one *.page.ts per page, NavigationBar
+  test-data/ # users.json, copy.ts (asserted UI texts) and generated unique values
+  support/   # server startup checks, launcher, teardown and run context
 reports/    # HTML and JSON reports (generated)
 ```
+
+## Coding conventions
+
+### Selectors
+
+Prefer getting elements by role, label, or test ID rather than by CSS selectors directly. This improves test readability and resilience to UI changes.
+
+### Assertions
+
+Prefer using Playwright's built-in assertion methods (`expect`) for verifying UI states and API responses. This ensures consistent and reliable test results. Feel free to use multiple assertions per test as needed.
+
+### Test organization
+
+Organize tests by feature or user journey within the `tests/e2e` directory. Use descriptive filenames (ideally the spec name) and group related tests together. Keep shared page objects in `tests/pages`, API clients in `tests/clients` and test data in `tests/test-data`. Specs get page objects and clients as Playwright fixtures from `tests/fixtures`, never with `new`. This structure helps maintain clarity and scalability as the test suite grows.
+
+### Naming conventions
+
+Use clear and descriptive names for test files, test cases, and page objects. This helps other developers quickly understand the purpose and scope of each test. For example, a test file for user login might be named `login.spec.ts`, and its page object `login.page.ts` exports `LoginPage`, which extends `AppPage`. Asserted texts (messages, headings, titles) live in `tests/test-data/copy.ts`; accessible names of controls stay in the page objects. Tag each test with the acceptance criterion it covers, `test("title", { tag: "@AC-AUT-01" }, ...)`, and run one criterion or a whole spec with `bun test:e2e --grep @AC-AUT`.
+
+API responses are checked with the custom matchers in `tests/fixtures/matchers.ts` (`toHaveStatus`, `toBeApiError`, `toBePublicUser`), whose failures show the URL and the response body.
 
 ## Target applications
 
@@ -112,6 +135,8 @@ Because tests run in parallel and share that database within a run:
   `crypto.randomUUID()` suffix), and never relies on data left by another test.
 - Tests must not depend on execution order.
 - Assert on the records the test created, never on global totals or counts.
+- A test that needs a signed-in user asks for the `signedInUser` fixture: a fresh user registered
+  and logged in through the API, with the page already signed in. Only the auth tests use the forms.
 
 When the back is already running, it keeps its own database, so isolation does
 not apply; the suite prints a warning.
