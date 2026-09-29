@@ -4,53 +4,23 @@ import { accessSync, constants, existsSync, mkdtempSync, readFileSync, rmSync } 
 import { connect, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { probeUrl } from "./http-probe.js";
+import type { TargetName, TargetSettings } from "./settings.js";
 import type { StartupProblem } from "./startup-problems.js";
-
-export interface TargetSettings {
-  name: string;
-  directory: string;
-  directoryVariable: string;
-  port: number;
-  portVariable: string;
-  readyUrl: string;
-}
 
 export interface PreflightSettings {
   targets: TargetSettings[];
+  /** Problems already found while reading the settings; target checks are skipped then. */
+  settingsProblems: StartupProblem[];
 }
 
 export interface PreflightResult {
   problems: StartupProblem[];
-  launch: string[];
+  launch: TargetName[];
 }
 
 const PORT_PROBE_TIMEOUT_MS = 500;
 const LIVE_PROBE_TIMEOUT_MS = 2_000;
-const READY_STATUS_MIN = 200;
-const READY_STATUS_MAX = 403;
-const MAX_PORT = 65_535;
-const NUMBER_SETTINGS = ["E2E_BACK_PORT", "E2E_FRONT_PORT", "E2E_SERVER_TIMEOUT_MS"];
-const PORT_SETTINGS = new Set(["E2E_BACK_PORT", "E2E_FRONT_PORT"]);
-// Invalid values would otherwise fall back to the defaults without notice
-const checkSettings = (): StartupProblem[] => {
-  const problems: StartupProblem[] = [];
-  for (const variable of NUMBER_SETTINGS) {
-    const raw = process.env[variable]?.trim();
-    if (!raw) {
-      continue;
-    }
-    const value = Number(raw);
-    const limit = PORT_SETTINGS.has(variable) ? MAX_PORT : Number.MAX_SAFE_INTEGER;
-    if (!Number.isInteger(value) || value < 1 || value > limit) {
-      problems.push({
-        area: "settings",
-        cause: `${variable}="${raw}" is not a whole number between 1 and ${limit}.`,
-        fix: `Correct or remove ${variable} in the shell or in .env.`,
-      });
-    }
-  }
-  return problems;
-};
 
 const readManifest = (target: TargetSettings): Record<string, unknown> | StartupProblem => {
   const manifestPath = join(target.directory, "package.json");
@@ -206,15 +176,6 @@ const checkPort = async (target: TargetSettings): Promise<StartupProblem[]> => {
   ];
 };
 
-const isUrlReady = async (url: string): Promise<boolean> => {
-  try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(LIVE_PROBE_TIMEOUT_MS) });
-    return response.status >= READY_STATUS_MIN && response.status <= READY_STATUS_MAX;
-  } catch {
-    return false;
-  }
-};
-
 const checkCommand = (command: string, fix: string): StartupProblem[] => {
   // A single command string lets the shell find .exe and .cmd shims alike
   const result = spawnSync(`${command} --version`, { encoding: "utf8", shell: true });
@@ -267,29 +228,13 @@ const checkWritable = (): StartupProblem[] => {
   return problems;
 };
 
-const samePortProblem = (targets: TargetSettings[]): StartupProblem[] => {
-  const [first, second] = targets;
-  if (!first || !second || first.port !== second.port) {
-    return [];
-  }
-  return [
-    {
-      area: "port",
-      cause: `${first.name} and ${second.name} are both set to port ${first.port}.`,
-      fix: `Give ${first.portVariable} and ${second.portVariable} different values.`,
-    },
-  ];
-};
-
 // A target whose URL already answers is used as-is. The others are started from their folder.
 export const runPreflight = async (settings: PreflightSettings): Promise<PreflightResult> => {
-  const settingsProblems = checkSettings();
-  const portClash = samePortProblem(settings.targets);
-  const launch: string[] = [];
+  const launch: TargetName[] = [];
   const targetProblems: StartupProblem[] = [];
-  if (settingsProblems.length === 0 && portClash.length === 0) {
+  if (settings.settingsProblems.length === 0) {
     for (const target of settings.targets) {
-      if (await isUrlReady(target.readyUrl)) {
+      if ((await probeUrl(target.readyUrl, LIVE_PROBE_TIMEOUT_MS)).ready) {
         continue;
       }
       launch.push(target.name);
@@ -305,8 +250,7 @@ export const runPreflight = async (settings: PreflightSettings): Promise<Preflig
   return {
     launch,
     problems: [
-      ...settingsProblems,
-      ...portClash,
+      ...settings.settingsProblems,
       ...targetProblems,
       ...toolingProblems,
       ...checkWritable(),

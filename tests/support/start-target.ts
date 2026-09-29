@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
+import { probeUrl } from "./http-probe.js";
 import { formatStartupProblems, type StartupProblem } from "./startup-problems.js";
 
 // Runs "bun start" for one target (Playwright webServer command) and, when it cannot
@@ -8,9 +9,6 @@ import { formatStartupProblems, type StartupProblem } from "./startup-problems.j
 const POLL_INTERVAL_MS = 250;
 const PROBE_TIMEOUT_MS = 1_000;
 const OUTPUT_TAIL_LINES = 30;
-// Same readiness rule as Playwright's webServer url check
-const READY_STATUS_MIN = 200;
-const READY_STATUS_MAX = 403;
 
 const [name = "target", readyUrl = "", timeoutArg = "", portVariable = "", directoryVariable = ""] =
   process.argv.slice(2);
@@ -114,16 +112,9 @@ child.once("exit", (code, signal) => {
 });
 
 const probe = async (): Promise<boolean> => {
-  try {
-    const response = await fetch(readyUrl, { signal: AbortSignal.timeout(PROBE_TIMEOUT_MS) });
-    lastProbe = `HTTP ${response.status}`;
-    return response.status >= READY_STATUS_MIN && response.status <= READY_STATUS_MAX;
-  } catch (error) {
-    // Bun sets the code on the error, Node on its cause
-    const failure = error as { code?: string; cause?: { code?: string }; message: string };
-    lastProbe = failure.code ?? failure.cause?.code ?? failure.message;
-    return false;
-  }
+  const { detail, ready: answered } = await probeUrl(readyUrl, PROBE_TIMEOUT_MS);
+  lastProbe = detail;
+  return answered;
 };
 
 const timeoutProblem = (): StartupProblem => {
