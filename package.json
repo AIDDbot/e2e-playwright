@@ -1,6 +1,9 @@
 {
   "name": "e2e-playwright",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "config": {
+    "codename": "oktoberfest"
+  },
   "description": "End-to-end Playwright suite for api and web applications",
   "homepage": "https://aiddbot.com",
   "license": "MIT",
