@@ -1,41 +1,14 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
+import { type AuthSession, type AuthUser } from "../clients/auth.client.js";
+import { expect, test } from "../fixtures/index.js";
 import authData from "../test-data/auth.json" with { type: "json" };
 import { uniqueEmail } from "../test-data/unique.js";
 
-const BACK_URL = process.env["E2E_BACK_URL"];
-const REGISTER_PATH = "/api/auth/register";
-const LOGIN_PATH = "/api/auth/login";
-const ME_PATH = "/api/auth/me";
-interface AuthUser {
-  id: number;
-  email: string;
-  name: string;
-  role: string;
-  createdAt: string;
-}
-
-interface AuthSession {
-  token: string;
-  user: AuthUser;
-}
-
-const registerUser = async (request: APIRequestContext, body: Readonly<Record<string, unknown>>) =>
-  request.post(`${BACK_URL}${REGISTER_PATH}`, { data: body });
-
-const loginUser = async (request: APIRequestContext, body: Readonly<Record<string, unknown>>) =>
-  request.post(`${BACK_URL}${LOGIN_PATH}`, { data: body });
-
-const getMe = async (request: APIRequestContext, authorization?: string) =>
-  request.get(`${BACK_URL}${ME_PATH}`, {
-    headers: authorization === undefined ? {} : { Authorization: authorization },
-  });
-
 test.describe("Auth API — register", () => {
   test("AC-AUT-01 registers with 201 and the normalized user, role always user", async ({
-    request,
+    authClient,
   }) => {
     const email = uniqueEmail("reg");
-    const response = await registerUser(request, {
+    const response = await authClient.register({
       email: ` ${email.toUpperCase()} `,
       name: authData.users.ada.name,
       password: authData.users.ada.password,
@@ -54,17 +27,17 @@ test.describe("Auth API — register", () => {
   });
 
   test("AC-AUT-02 rejects a duplicate email (any letter case) with 409, and the first password still logs in", async ({
-    request,
+    authClient,
   }) => {
     const email = uniqueEmail("dup");
-    const first = await registerUser(request, {
+    const first = await authClient.register({
       email,
       name: authData.users.ada.name,
       password: "first-pw",
     });
     expect(first.status()).toBe(201);
 
-    const second = await registerUser(request, {
+    const second = await authClient.register({
       email: email.toUpperCase(),
       name: "Ada 2",
       password: "second-pw",
@@ -73,15 +46,15 @@ test.describe("Auth API — register", () => {
     const secondBody = (await second.json()) as { error: string };
     expect(secondBody.error).toBe(authData.messages.emailAlreadyRegistered);
 
-    const login = await loginUser(request, { email, password: "first-pw" });
+    const login = await authClient.login({ email, password: "first-pw" });
     expect(login.status()).toBe(200);
   });
 
   test("AC-AUT-03a rejects a missing name and does not create a loginable user", async ({
-    request,
+    authClient,
   }) => {
     const missingNameEmail = uniqueEmail("no-name");
-    const missingName = await registerUser(request, {
+    const missingName = await authClient.register({
       email: missingNameEmail,
       password: "pw",
     });
@@ -89,7 +62,7 @@ test.describe("Auth API — register", () => {
     const missingNameBody = (await missingName.json()) as { error: string };
     expect(missingNameBody.error).toBe(authData.messages.requiredFields);
 
-    const missingNameLogin = await loginUser(request, {
+    const missingNameLogin = await authClient.login({
       email: missingNameEmail,
       password: "pw",
     });
@@ -97,10 +70,10 @@ test.describe("Auth API — register", () => {
   });
 
   test("AC-AUT-03b rejects an empty password and does not create a loginable user", async ({
-    request,
+    authClient,
   }) => {
     const emptyPasswordEmail = uniqueEmail("empty-pw");
-    const emptyPassword = await registerUser(request, {
+    const emptyPassword = await authClient.register({
       email: emptyPasswordEmail,
       name: "Ada",
       password: "",
@@ -109,15 +82,15 @@ test.describe("Auth API — register", () => {
     const emptyPasswordBody = (await emptyPassword.json()) as { error: string };
     expect(emptyPasswordBody.error).toBe(authData.messages.requiredFields);
 
-    const emptyPasswordLogin = await loginUser(request, {
+    const emptyPasswordLogin = await authClient.login({
       email: emptyPasswordEmail,
       password: "pw",
     });
     expect(emptyPasswordLogin.status()).toBe(401);
   });
 
-  test("AC-AUT-03c rejects a non-string email", async ({ request }) => {
-    const nonStringEmail = await registerUser(request, {
+  test("AC-AUT-03c rejects a non-string email", async ({ authClient }) => {
+    const nonStringEmail = await authClient.register({
       email: 123,
       name: "Ada",
       password: "pw",
@@ -128,10 +101,10 @@ test.describe("Auth API — register", () => {
   });
 
   test("AC-AUT-12 ignores a client-supplied role and always stores/returns role user", async ({
-    request,
+    authClient,
   }) => {
     const email = uniqueEmail("ignored-role");
-    const response = await registerUser(request, {
+    const response = await authClient.register({
       email,
       name: "Ada",
       password: authData.users.ada.password,
@@ -146,17 +119,16 @@ test.describe("Auth API — register", () => {
 
 test.describe("Auth API — login", () => {
   test("AC-AUT-04 logs in with a non-empty token and the user's id, email, name and role", async ({
-    request,
+    authClient,
   }) => {
     const email = uniqueEmail("login-ok");
-    const registerResponse = await registerUser(request, {
+    await authClient.registerUser({
       email,
       name: authData.users.grace.name,
       password: authData.users.grace.password,
     });
-    expect(registerResponse.status()).toBe(201);
 
-    const response = await loginUser(request, {
+    const response = await authClient.login({
       email,
       password: authData.users.grace.password,
     });
@@ -174,22 +146,17 @@ test.describe("Auth API — login", () => {
   });
 
   test("AC-AUT-05 rejects a wrong password and an unknown email with the same 401 error body", async ({
-    request,
+    authClient,
   }) => {
     const email = uniqueEmail("wrong-pw");
-    const registerResponse = await registerUser(request, {
-      email,
-      name: "Ada",
-      password: "correct-pw",
-    });
-    expect(registerResponse.status()).toBe(201);
+    await authClient.registerUser({ email, name: "Ada", password: "correct-pw" });
 
-    const wrongPassword = await loginUser(request, { email, password: "wrong-pw" });
+    const wrongPassword = await authClient.login({ email, password: "wrong-pw" });
     expect(wrongPassword.status()).toBe(401);
     const wrongPasswordBody = (await wrongPassword.json()) as { error: string };
     expect(wrongPasswordBody.error).toBe(authData.messages.invalidCredentials);
 
-    const unknownEmail = await loginUser(request, {
+    const unknownEmail = await authClient.login({
       email: uniqueEmail("unknown"),
       password: "correct-pw",
     });
@@ -209,9 +176,9 @@ test.describe("Auth API — session guard", () => {
 
   for (const { authorization, name } of rejected) {
     test(`AC-AUT-14 rejects GET /api/auth/me ${name} with 401 and an error body`, async ({
-      request,
+      authClient,
     }) => {
-      const response = await getMe(request, authorization);
+      const response = await authClient.me(authorization);
 
       expect(response.status()).toBe(401);
       const body = (await response.json()) as { error: unknown };
@@ -220,22 +187,15 @@ test.describe("Auth API — session guard", () => {
     });
   }
 
-  test("AC-AUT-15 returns the logged-in public user for its Bearer token", async ({ request }) => {
+  test("AC-AUT-15 returns the logged-in public user for its Bearer token", async ({
+    authClient,
+  }) => {
     const email = uniqueEmail("me");
-    const registerResponse = await registerUser(request, {
-      email,
-      name: authData.users.ada.name,
-      password: authData.users.ada.password,
-    });
-    expect(registerResponse.status()).toBe(201);
-    const loginResponse = await loginUser(request, {
-      email,
-      password: authData.users.ada.password,
-    });
-    expect(loginResponse.status()).toBe(200);
-    const session = (await loginResponse.json()) as AuthSession;
+    const { name, password } = authData.users.ada;
+    await authClient.registerUser({ email, name, password });
+    const session = await authClient.loginUser({ email, password });
 
-    const response = await getMe(request, `Bearer ${session.token}`);
+    const response = await authClient.me(`Bearer ${session.token}`);
 
     expect(response.status()).toBe(200);
     const user = (await response.json()) as AuthUser;

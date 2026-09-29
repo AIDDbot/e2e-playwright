@@ -1,14 +1,12 @@
-import { expect, test } from "@playwright/test";
-import { NavigationPage } from "../../pages/navigation.page.js";
+import { expect, test } from "../../fixtures/index.js";
+import { appTitle } from "../../support/run-context.js";
 
-// Set by playwright.config.ts from the front package.json (it throws if missing)
-const APP_TITLE = process.env["E2E_APP_TITLE"] ?? "";
+const APP_TITLE = appTitle;
 const PAGES = ["/", "/about", "/items/1", "/no/such/page"];
 
 test.describe("Navigation bar", () => {
   for (const path of PAGES) {
-    test(`AC-NAV-01 shows title, menu and theme toggle on ${path}`, async ({ page }) => {
-      const navigation = new NavigationPage(page);
+    test(`AC-NAV-01 shows title, menu and theme toggle on ${path}`, async ({ navigation }) => {
       await navigation.goto(path);
 
       await expect(navigation.appLink(APP_TITLE)).toHaveAttribute("href", "/");
@@ -20,8 +18,7 @@ test.describe("Navigation bar", () => {
 });
 
 test.describe("Theme toggle", () => {
-  test("AC-NAV-02 switches between dark and light themes", async ({ page }) => {
-    const navigation = new NavigationPage(page);
+  test("AC-NAV-02 switches between dark and light themes", async ({ navigation, page }) => {
     await navigation.goto();
     const toggle = navigation.themeToggle;
     await expect(toggle).toBeVisible();
@@ -37,8 +34,7 @@ test.describe("Theme toggle", () => {
     await expect(html).toHaveAttribute("data-theme", initial ?? "");
   });
 
-  test("AC-NAV-03 keeps the chosen theme after a reload", async ({ page }) => {
-    const navigation = new NavigationPage(page);
+  test("AC-NAV-03 keeps the chosen theme after a reload", async ({ navigation, page }) => {
     await navigation.goto();
     const toggle = navigation.themeToggle;
     await expect(toggle).toBeVisible();

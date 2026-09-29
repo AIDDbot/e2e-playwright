@@ -143,15 +143,14 @@ if (isMainProcess) {
   if (launch.has("back")) {
     process.env["E2E_DB_PATH"] = join(tmpdir(), `e2e-${Date.now()}-${process.pid}.db`);
   } else {
-    console.warn(
-      `Using the back already running at ${backUrl}. It keeps its own database.`,
-    );
+    console.warn(`Using the back already running at ${backUrl}. It keeps its own database.`);
   }
 }
 const dbPath = process.env["E2E_DB_PATH"] ?? "";
 
-// Publish the API URL, app title and author for worker processes to use
+// Publish the target URLs, app title and author for worker processes (read in run-context.ts)
 process.env["E2E_BACK_URL"] = backUrl;
+process.env["E2E_FRONT_URL"] = frontUrl;
 process.env["E2E_APP_TITLE"] = await readAppTitle(frontManifest);
 process.env["E2E_APP_AUTHOR"] = readAppAuthor(frontManifest);
 
@@ -187,8 +186,14 @@ export default defineConfig({
   outputDir: "./reports/test-results",
   projects: [
     {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      name: "api",
+      testDir: "./tests/api",
+      use: { baseURL: backUrl },
+    },
+    {
+      name: "e2e",
+      testDir: "./tests/e2e",
+      use: { ...devices["Desktop Chrome"], baseURL: frontUrl },
     },
   ],
   reporter: [
@@ -199,7 +204,6 @@ export default defineConfig({
   testDir: "./tests",
   testMatch: "**/*.spec.ts",
   use: {
-    baseURL: frontUrl,
     screenshot: "only-on-failure",
     trace: "on-first-retry",
     video: "retain-on-failure",
@@ -207,33 +211,33 @@ export default defineConfig({
   ...(launch.size === 0
     ? {}
     : {
-      webServer: [
-        launch.has("back")
-          ? {
-            command: launchCommand(
-              "back",
-              `${backUrl}/api/health`,
-              "E2E_BACK_PORT",
-              "BACK_DIRECTORY",
-            ),
-            cwd: backDirectory,
-            env: { DB_PATH: dbPath, PORT: String(backPort) },
-            name: "back",
-            timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
-            url: `${backUrl}/api/health`,
-          }
-          : undefined,
-        launch.has("front")
-          ? {
-            command: launchCommand("front", frontUrl, "E2E_FRONT_PORT", "FRONT_DIRECTORY"),
-            cwd: frontDirectory,
-            env: { API_BASE_URL: backUrl, PORT: String(frontPort) },
-            name: "front",
-            timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
-            url: frontUrl,
-          }
-          : undefined,
-      ].filter((server) => server !== undefined),
-    }),
+        webServer: [
+          launch.has("back")
+            ? {
+                command: launchCommand(
+                  "back",
+                  `${backUrl}/api/health`,
+                  "E2E_BACK_PORT",
+                  "BACK_DIRECTORY",
+                ),
+                cwd: backDirectory,
+                env: { DB_PATH: dbPath, PORT: String(backPort) },
+                name: "back",
+                timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
+                url: `${backUrl}/api/health`,
+              }
+            : undefined,
+          launch.has("front")
+            ? {
+                command: launchCommand("front", frontUrl, "E2E_FRONT_PORT", "FRONT_DIRECTORY"),
+                cwd: frontDirectory,
+                env: { API_BASE_URL: backUrl, PORT: String(frontPort) },
+                name: "front",
+                timeout: serverTimeoutMs + LAUNCHER_GRACE_MS,
+                url: frontUrl,
+              }
+            : undefined,
+        ].filter((server) => server !== undefined),
+      }),
   ...(workers === undefined ? {} : { workers }),
 });

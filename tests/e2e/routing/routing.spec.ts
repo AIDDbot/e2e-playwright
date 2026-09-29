@@ -1,9 +1,9 @@
-import { type Page, type Request, expect, test } from "@playwright/test";
-import { ContentPage } from "../../pages/content.page.js";
-import { NavigationPage } from "../../pages/navigation.page.js";
+import { type Page, type Request } from "@playwright/test";
+import { expect, test } from "../../fixtures/index.js";
+import { type ContentPage } from "../../pages/content.page.js";
+import { appTitle } from "../../support/run-context.js";
 
-// Set by playwright.config.ts from the front package.json (it throws if missing)
-const APP_TITLE = process.env["E2E_APP_TITLE"] ?? "";
+const APP_TITLE = appTitle;
 
 // A full reload wipes window state, so a surviving marker proves client-side navigation
 const markDocument = async (page: Page): Promise<void> => {
@@ -19,10 +19,10 @@ const expectSameDocument = async (page: Page): Promise<void> => {
 
 test.describe("Client-side navigation", () => {
   test("AC-RTE-01 follows menu, title and content links without a full reload", async ({
+    content,
+    navigation,
     page,
   }) => {
-    const content = new ContentPage(page);
-    const navigation = new NavigationPage(page);
     await content.goto("/");
     await expect(content.heading()).toHaveText(APP_TITLE);
     await markDocument(page);
@@ -44,9 +44,11 @@ test.describe("Client-side navigation", () => {
     await expectSameDocument(page);
   });
 
-  test("AC-RTE-02 honours browser back and forward without a full reload", async ({ page }) => {
-    const content = new ContentPage(page);
-    const navigation = new NavigationPage(page);
+  test("AC-RTE-02 honours browser back and forward without a full reload", async ({
+    content,
+    navigation,
+    page,
+  }) => {
     await content.goto("/");
     await expect(content.heading()).toHaveText(APP_TITLE);
     await markDocument(page);
@@ -75,8 +77,7 @@ test.describe("Direct access", () => {
   ];
 
   for (const { heading, path } of routes) {
-    test(`AC-RTE-03 renders ${path} when opened by URL and reloaded`, async ({ page }) => {
-      const content = new ContentPage(page);
+    test(`AC-RTE-03 renders ${path} when opened by URL and reloaded`, async ({ content, page }) => {
       await content.goto(path);
       await expect(content.heading()).toHaveText(heading);
 
@@ -137,12 +138,12 @@ test.describe("Assets on direct access", () => {
 
   for (const { heading, path } of routes) {
     test(`AC-RTE-05 loads stylesheets and logo for ${path} when opened by URL and reloaded`, async ({
+      content,
       page,
     }) => {
       // Routing disables the HTTP cache, so the reload fetches again instead of answering 304
       await page.route("**/*", async (route) => route.continue());
       const stylesheets = logStylesheets(page);
-      const content = new ContentPage(page);
 
       await content.goto(path);
       await expect(content.heading()).toHaveText(heading);
@@ -157,8 +158,10 @@ test.describe("Assets on direct access", () => {
 });
 
 test.describe("Unknown routes", () => {
-  test("AC-RTE-04 shows not found with the requested path and a link home", async ({ page }) => {
-    const content = new ContentPage(page);
+  test("AC-RTE-04 shows not found with the requested path and a link home", async ({
+    content,
+    page,
+  }) => {
     await content.goto("/no/such/page");
 
     await expect(content.heading()).toHaveText("Page not found");

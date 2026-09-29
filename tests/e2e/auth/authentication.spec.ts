@@ -1,18 +1,7 @@
-import { type APIRequestContext, type Page, expect, test } from "@playwright/test";
+import { type Page } from "@playwright/test";
+import { expect, test } from "../../fixtures/index.js";
 import authData from "../../test-data/auth.json" with { type: "json" };
 import { uniqueEmail } from "../../test-data/unique.js";
-import { LoginPage, RegisterPage } from "../../pages/auth.page.js";
-import { NavigationPage } from "../../pages/navigation.page.js";
-
-const BACK_URL = process.env["E2E_BACK_URL"];
-
-const registerViaApi = async (
-  request: APIRequestContext,
-  body: Readonly<{ email: string; name: string; password: string }>,
-): Promise<void> => {
-  const response = await request.post(`${BACK_URL}/api/auth/register`, { data: body });
-  expect(response.status()).toBe(201);
-};
 
 const countPostRequests = (page: Page, path: string): (() => number) => {
   let count = 0;
@@ -36,12 +25,13 @@ const holdPostRequests = async (page: Page, path: string): Promise<() => void> =
 
 test.describe("Register then login", () => {
   test("AC-AUT-06 registering confirms success, and login shows the user in navigation", async ({
+    loginPage,
+    navigation,
     page,
+    registerPage,
   }) => {
     const email = uniqueEmail("ui-flow");
     const { name, password } = authData.users.ada;
-    const registerPage = new RegisterPage(page);
-    const loginPage = new LoginPage(page);
 
     await registerPage.goto();
     await registerPage.submit({ email, name, password });
@@ -53,26 +43,29 @@ test.describe("Register then login", () => {
 
     await loginPage.submit({ email, password });
     await expect(page).toHaveURL("/");
-    await expect(new NavigationPage(page).authenticatedUser(name, "user")).toBeVisible();
+    await expect(navigation.authenticatedUser(name, "user")).toBeVisible();
   });
 
-  test("AC-AUT-13 the register form has no Role field", async ({ page }) => {
-    await new RegisterPage(page).goto();
+  test("AC-AUT-13 the register form has no Role field", async ({ page, registerPage }) => {
+    await registerPage.goto();
     await expect(page.getByRole("combobox", { name: "Role" })).toHaveCount(0);
     await expect(page.getByLabel("Role")).toHaveCount(0);
   });
 });
 
 test.describe("Register errors", () => {
-  test("AC-AUT-07 shows duplicate email error and allows a retry", async ({ page, request }) => {
+  test("AC-AUT-07 shows duplicate email error and allows a retry", async ({
+    authClient,
+    page,
+    registerPage,
+  }) => {
     const email = uniqueEmail("ui-dup");
-    await registerViaApi(request, {
+    await authClient.registerUser({
       email,
       name: authData.users.ada.name,
       password: "first-pw",
     });
 
-    const registerPage = new RegisterPage(page);
     await registerPage.goto();
     await registerPage.submit({ email, name: "Ada 2", password: "second-pw" });
     await registerPage.expectError(authData.messages.emailAlreadyRegistered);
@@ -89,12 +82,15 @@ test.describe("Register errors", () => {
 });
 
 test.describe("Login errors", () => {
-  test("AC-AUT-08 shows wrong password error and allows a retry", async ({ page, request }) => {
+  test("AC-AUT-08 shows wrong password error and allows a retry", async ({
+    authClient,
+    loginPage,
+    page,
+  }) => {
     const email = uniqueEmail("ui-badpw");
     const password = "correct-pw";
-    await registerViaApi(request, { email, name: "Ada", password });
+    await authClient.registerUser({ email, name: "Ada", password });
 
-    const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.submit({ email, password: "wrong-pw" });
     await loginPage.expectError(authData.messages.invalidCredentials);
@@ -107,8 +103,10 @@ test.describe("Login errors", () => {
 });
 
 test.describe("Double submit", () => {
-  test("AC-AUT-09 clicking Register twice sends one registration request", async ({ page }) => {
-    const registerPage = new RegisterPage(page);
+  test("AC-AUT-09 clicking Register twice sends one registration request", async ({
+    page,
+    registerPage,
+  }) => {
     await registerPage.goto();
     await registerPage.fill({
       email: uniqueEmail("ui-double-register"),
@@ -126,12 +124,15 @@ test.describe("Double submit", () => {
     expect(registerRequests()).toBe(1);
   });
 
-  test("AC-AUT-10 clicking Log in twice sends one login request", async ({ page, request }) => {
+  test("AC-AUT-10 clicking Log in twice sends one login request", async ({
+    authClient,
+    loginPage,
+    page,
+  }) => {
     const email = uniqueEmail("ui-double-login");
     const password = authData.users.ada.password;
-    await registerViaApi(request, { email, name: "Ada", password });
+    await authClient.registerUser({ email, name: "Ada", password });
 
-    const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.fill({ email, password });
 
