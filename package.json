@@ -2,28 +2,29 @@
   "name": "e2e-playwright",
   "version": "0.1.0",
   "description": "End-to-end Playwright suite for api and web applications",
-  "license": "MIT",
   "homepage": "https://aiddbot.com",
-  "repository": "https://github.com/aiddbot/",
+  "license": "MIT",
   "author": {
     "name": "Alberto Basalo",
     "url": "https://x.com/albertobasalo"
   },
+  "repository": "https://github.com/AIDDbot/e2e-playwright",
   "type": "module",
   "scripts": {
     "postinstall": "playwright install chromium",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report ./reports/html",
-    "lint": "tsc --noEmit",
-    "format": "oxfmt --write"
-  },
-  "dependencies": {
-    "playwright": "^1.63.0"
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint --deny-warnings && tsc --noEmit",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.2",
+    "eslint-plugin-playwright": "^2.12.0",
     "oxfmt": "^0.68.0",
+    "oxlint": "^1.86.0",
     "typescript": "^7.0.2"
   },
   "engines": {

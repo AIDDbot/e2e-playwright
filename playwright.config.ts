@@ -9,7 +9,8 @@ import { formatStartupProblems } from "./tests/support/startup-problems.js";
 
 const CI_RETRIES = 2;
 const LOCAL_RETRIES = 0;
-const CI_WORKERS = 1;
+// Tests share one database and create their own unique data, so CI can run them in parallel
+const CI_WORKERS = "50%";
 const PREFLIGHT_EXIT_CODE = 1;
 // Extra time so the launcher reports its own, more precise timeout first
 const LAUNCHER_GRACE_MS = 5_000;
@@ -91,6 +92,8 @@ export default defineConfig({
     },
   ],
   reporter: [
+    // A person sees one live line; agents and CI read a compact dot line plus full failure details
+    process.stdout.isTTY ? ["line"] : ["dot"],
     ["json", { outputFile: "./reports/results.json" }],
     ["html", { open: "never", outputFolder: "./reports/html" }],
   ],
@@ -99,7 +102,8 @@ export default defineConfig({
   testMatch: "**/*.spec.ts",
   use: {
     screenshot: "only-on-failure",
-    trace: "on-first-retry",
+    // Local runs have no retries, so keep the trace of every failure there
+    trace: isCI ? "on-first-retry" : "retain-on-failure",
     video: "retain-on-failure",
   },
   ...(webServer.length === 0 ? {} : { webServer }),

@@ -1,0 +1,62 @@
+name: e2e
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Scaffold layout: the suite finds the targets at ../back and ../front
+      - uses: actions/checkout@v5
+        with:
+          path: e2e
+      - uses: actions/checkout@v5
+        with:
+          repository: AIDDbot/back-express
+          path: back
+      - uses: actions/checkout@v5
+        with:
+          repository: AIDDbot/front-standard
+          path: front
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: e2e/package.json
+
+      - name: Install targets
+        run: |
+          bun install --cwd back --frozen-lockfile
+          bun install --cwd front --frozen-lockfile
+
+      - name: Install suite
+        working-directory: e2e
+        run: |
+          bun install --frozen-lockfile
+          bunx playwright install --with-deps chromium
+
+      - name: Lint and format
+        working-directory: e2e
+        run: |
+          bun run lint
+          bun run format:check
+
+      - name: Run tests
+        working-directory: e2e
+        run: bun test:e2e
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-reports
+          path: e2e/reports/
+          retention-days: 14

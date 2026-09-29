@@ -12,10 +12,7 @@ const countPostRequests = (page: Page, path: string): (() => number) => {
 };
 
 const holdPostRequests = async (page: Page, path: string): Promise<() => void> => {
-  let release: () => void = () => {};
-  const held = new Promise<void>((resolve) => {
-    release = resolve;
-  });
+  const { promise: held, resolve: release } = Promise.withResolvers<void>();
   await page.route(`**${path}`, async (route) => {
     await held;
     await route.continue();

@@ -1,23 +1,17 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
+  // Type-check only: Playwright runs the TypeScript sources directly
+  "include": ["playwright.config.ts", "tests/**/*.ts"],
   "compilerOptions": {
-    // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
+    "noEmit": true,
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "resolveJsonModule": true,
     "target": "esnext",
+    "lib": ["esnext", "dom"],
     "types": ["node"],
-    // For nodejs:
-    // "lib": ["esnext"],
-
-    // Other Outputs
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
@@ -33,7 +27,6 @@
 
     // Recommended Options
     "strict": true,
-    "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,

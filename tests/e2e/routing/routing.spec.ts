@@ -8,12 +8,12 @@ const APP_TITLE = appTitle;
 // A full reload wipes window state, so a surviving marker proves client-side navigation
 const markDocument = async (page: Page): Promise<void> => {
   await page.evaluate(() => {
-    (globalThis as { __spaMarker?: boolean }).__spaMarker = true;
+    (globalThis as { e2eSpaMarker?: boolean }).e2eSpaMarker = true;
   });
 };
 
 const expectSameDocument = async (page: Page): Promise<void> => {
-  const marker = await page.evaluate(() => (globalThis as { __spaMarker?: boolean }).__spaMarker);
+  const marker = await page.evaluate(() => (globalThis as { e2eSpaMarker?: boolean }).e2eSpaMarker);
   expect(marker).toBe(true);
 };
 
