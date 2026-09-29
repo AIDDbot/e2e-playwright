@@ -43,10 +43,10 @@ jobs:
           bun install --frozen-lockfile
           bunx playwright install --with-deps chromium
 
-      - name: Lint and format
+      - name: Quality
         working-directory: e2e
         run: |
-          bun run lint
+          bun run quality:all
           bun run format:check
 
       - name: Run tests

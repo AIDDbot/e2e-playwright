@@ -1,13 +1,21 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
   "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
   "jsPlugins": ["eslint-plugin-playwright"],
-  "categories": { "correctness": "error", "suspicious": "warn" },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
   "ignorePatterns": ["reports/**", "temp/**"],
   "overrides": [
     {
       "files": ["tests/**/*.ts"],
       "rules": {
+        "typescript/no-unsafe-type-assertion": "off",
         "unicorn/no-array-fill-with-reference-type": "off",
         "playwright/missing-playwright-await": "error",
         "playwright/no-focused-test": "error",
@@ -25,7 +33,12 @@
         "playwright/prefer-to-have-length": "error",
         "playwright/no-element-handle": "error",
         "playwright/no-eval": "error",
-        "playwright/no-skipped-test": ["warn", { "allowConditional": true }]
+        "playwright/no-skipped-test": [
+          "warn",
+          {
+            "allowConditional": true
+          }
+        ]
       }
     }
   ]

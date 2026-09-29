@@ -111,29 +111,33 @@ interface PortOwner {
   program: string;
 }
 
+const findWindowsPortOwner = (port: number): PortOwner | undefined => {
+  const netstat = spawnSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8" }).stdout ?? "";
+  const line = netstat
+    .split(/\r?\n/)
+    .find((row) => /LISTENING/i.test(row) && new RegExp(`:${port}\\s`).test(row));
+  const pid = line?.trim().split(/\s+/).pop();
+  if (!pid) {
+    return undefined;
+  }
+  const tasklist = spawnSync("tasklist", ["/FI", `PID eq ${pid}`, "/FO", "CSV", "/NH"], {
+    encoding: "utf8",
+  }).stdout;
+  return { pid, program: tasklist?.split(",")[0]?.replaceAll('"', "").trim() ?? "" };
+};
+
+const findUnixPortOwner = (port: number): PortOwner | undefined => {
+  const lsof =
+    spawnSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-Fpc"], { encoding: "utf8" })
+      .stdout ?? "";
+  const pid = /^p(\d+)/m.exec(lsof)?.[1];
+  return pid ? { pid, program: /^c(.+)/m.exec(lsof)?.[1] ?? "" } : undefined;
+};
+
 // Best effort only: the owner is a hint, never a reason to fail
 const findPortOwner = (port: number): PortOwner | undefined => {
   try {
-    if (process.platform === "win32") {
-      const netstat =
-        spawnSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8" }).stdout ?? "";
-      const line = netstat
-        .split(/\r?\n/)
-        .find((row) => /LISTENING/i.test(row) && new RegExp(`:${port}\\s`).test(row));
-      const pid = line?.trim().split(/\s+/).pop();
-      if (!pid) {
-        return undefined;
-      }
-      const tasklist = spawnSync("tasklist", ["/FI", `PID eq ${pid}`, "/FO", "CSV", "/NH"], {
-        encoding: "utf8",
-      }).stdout;
-      return { pid, program: tasklist?.split(",")[0]?.replaceAll('"', "").trim() ?? "" };
-    }
-    const lsof = spawnSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-Fpc"], {
-      encoding: "utf8",
-    }).stdout;
-    const pid = /^p(\d+)/m.exec(lsof ?? "")?.[1];
-    return pid ? { pid, program: /^c(.+)/m.exec(lsof ?? "")?.[1] ?? "" } : undefined;
+    return process.platform === "win32" ? findWindowsPortOwner(port) : findUnixPortOwner(port);
   } catch {
     return undefined;
   }

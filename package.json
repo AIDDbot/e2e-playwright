@@ -14,10 +14,14 @@
     "postinstall": "playwright install chromium",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report ./reports/html",
-    "typecheck": "tsc --noEmit",
-    "lint": "oxlint --deny-warnings && tsc --noEmit",
+    "lint": "oxlint --format=agent --quiet",
+    "lint:fix": "oxlint --fix --format=agent --quiet",
     "format": "oxfmt --write",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "fix": "bun run lint:fix && bun run format",
+    "quality:warnings": "oxlint --deny-warnings --format=agent",
+    "quality:complexity": "oxlint -c .oxlintrc.complexity.json --format=agent --quiet",
+    "quality:all": "bun run quality:warnings && bun run quality:complexity"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
@@ -25,7 +29,7 @@
     "eslint-plugin-playwright": "^2.12.0",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.86.0",
-    "typescript": "^7.0.2"
+    "oxlint-tsgolint": "^7.0.2003"
   },
   "engines": {
     "bun": ">=1.4.0",

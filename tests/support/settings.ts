@@ -8,7 +8,12 @@ const DEFAULT_BACK_DIRECTORY = "../back";
 const DEFAULT_FRONT_DIRECTORY = "../front";
 const MAX_PORT = 65_535;
 
-export type TargetName = "back" | "front";
+const TARGET_NAMES = ["back", "front"] as const;
+
+export type TargetName = (typeof TARGET_NAMES)[number];
+
+export const isTargetName = (value: string): value is TargetName =>
+  (TARGET_NAMES as readonly string[]).includes(value);
 
 export interface TargetSettings {
   name: TargetName;

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { readAppInfo } from "./tests/support/app-info.js";
 import { runPreflight } from "./tests/support/preflight.js";
-import { readSettings, type TargetName, type TargetSettings } from "./tests/support/settings.js";
+import { isTargetName, readSettings, type TargetSettings } from "./tests/support/settings.js";
 import { formatStartupProblems } from "./tests/support/startup-problems.js";
 
 const CI_RETRIES = 2;
@@ -55,7 +55,7 @@ if (isMainProcess) {
   process.env["E2E_APP_AUTHOR"] = app.author;
 }
 
-const launch = new Set((process.env["E2E_LAUNCH"] ?? "").split(",") as TargetName[]);
+const launch = new Set((process.env["E2E_LAUNCH"] ?? "").split(",").filter(isTargetName));
 
 // Runs "bun start" through the launcher, which explains crashes and timeouts
 const webServerFor = (target: TargetSettings, env: Record<string, string>) => ({
