@@ -9,29 +9,33 @@ const AUTHOR_EMAIL = appAuthor.email ?? "";
 const isWebUrl = (value: string): boolean => /^https?:\/\//iu.test(value);
 
 test.describe("Home page", () => {
-  test("AC-CNT-01 shows title, trust message and the Archetypes links", async ({ content }) => {
-    await content.goto("/");
+  test(
+    "shows title, trust message and the Archetypes links",
+    { tag: "@AC-CNT-01" },
+    async ({ content }) => {
+      await content.goto("/");
 
-    await expect(content.heading()).toHaveText(APP_TITLE);
-    await expect(content.trustMessage).toBeVisible();
-    await expect(content.archetypesHeading).toBeVisible();
+      await expect(content.heading()).toHaveText(APP_TITLE);
+      await expect(content.trustMessage).toBeVisible();
+      await expect(content.archetypesHeading).toBeVisible();
 
-    await expect(content.itemLinks).toHaveCount(4);
-    for (let index = 0; index < 4; index += 1) {
-      await expect(content.itemLinks.nth(index)).toHaveAttribute("href", `/items/${index + 1}`);
-    }
-  });
+      await expect(content.itemLinks).toHaveCount(4);
+      for (let index = 0; index < 4; index += 1) {
+        await expect(content.itemLinks.nth(index)).toHaveAttribute("href", `/items/${index + 1}`);
+      }
+    },
+  );
 });
 
 test.describe("Item detail page", () => {
-  test("AC-CNT-02 shows the item heading and a link home", async ({ content }) => {
+  test("shows the item heading and a link home", { tag: "@AC-CNT-02" }, async ({ content }) => {
     await content.goto("/items/42");
 
     await expect(content.heading()).toHaveText("Item #42");
     await expect(content.homeLink()).toHaveAttribute("href", "/");
   });
 
-  test("AC-CNT-03 renders the id as literal text, not markup", async ({ content }) => {
+  test("renders the id as literal text, not markup", { tag: "@AC-CNT-03" }, async ({ content }) => {
     const id = "&lt;b&gt;bold";
     await content.goto(`/items/${id}`);
 
@@ -40,11 +44,15 @@ test.describe("Item detail page", () => {
 });
 
 test.describe("About page", () => {
-  test("AC-CNT-04 shows server uptime and recorded runs from the API", async ({ content }) => {
-    await content.goto("/about");
+  test(
+    "shows server uptime and recorded runs from the API",
+    { tag: "@AC-CNT-04" },
+    async ({ content }) => {
+      await content.goto("/about");
 
-    await expect(content.healthSummary).toBeVisible();
-  });
+      await expect(content.healthSummary).toBeVisible();
+    },
+  );
 
   const failures = [
     { name: "network error", respond: { abort: true } },
@@ -52,19 +60,23 @@ test.describe("About page", () => {
   ];
 
   for (const { name, respond } of failures) {
-    test(`AC-CNT-05 shows "Health unavailable." on ${name}`, async ({ content, page }) => {
-      await page.route(HEALTH_ROUTE, async (route) => {
-        if ("abort" in respond) {
-          await route.abort();
-          return;
-        }
-        await route.fulfill({ status: respond.status });
-      });
+    test(
+      `shows "Health unavailable." on ${name}`,
+      { tag: "@AC-CNT-05" },
+      async ({ content, page }) => {
+        await page.route(HEALTH_ROUTE, async (route) => {
+          if ("abort" in respond) {
+            await route.abort();
+            return;
+          }
+          await route.fulfill({ status: respond.status });
+        });
 
-      await content.goto("/about");
+        await content.goto("/about");
 
-      await expect(content.healthUnavailableMessage).toBeVisible();
-    });
+        await expect(content.healthUnavailableMessage).toBeVisible();
+      },
+    );
   }
 
   // Skipped by design when the author omits a field; each skip message says how to enable it
@@ -74,27 +86,31 @@ test.describe("About page", () => {
       "No author name in front/package.json. Set author (or author.name) there to enable",
     );
 
-    test("AC-CNT-06 shows the author name from package.json", async ({ content }) => {
+    test("shows the author name from package.json", { tag: "@AC-CNT-06" }, async ({ content }) => {
       await content.goto("/about");
 
       await expect(content.authorLabel(AUTHOR_NAME)).toBeVisible();
     });
 
-    test("AC-CNT-07 links the author name to its web url in a new tab", async ({ content }) => {
-      test.skip(
-        !isWebUrl(AUTHOR_URL),
-        "No http(s) author url in front/package.json. Set author as { name, url } there to enable",
-      );
+    test(
+      "links the author name to its web url in a new tab",
+      { tag: "@AC-CNT-07" },
+      async ({ content }) => {
+        test.skip(
+          !isWebUrl(AUTHOR_URL),
+          "No http(s) author url in front/package.json. Set author as { name, url } there to enable",
+        );
 
-      await content.goto("/about");
+        await content.goto("/about");
 
-      const link = content.authorLink(AUTHOR_NAME);
-      await expect(link).toHaveAttribute("href", AUTHOR_URL);
-      await expect(link).toHaveAttribute("target", "_blank");
-      await expect(link).toHaveAttribute("rel", "noopener");
-    });
+        const link = content.authorLink(AUTHOR_NAME);
+        await expect(link).toHaveAttribute("href", AUTHOR_URL);
+        await expect(link).toHaveAttribute("target", "_blank");
+        await expect(link).toHaveAttribute("rel", "noopener");
+      },
+    );
 
-    test("AC-CNT-08 never exposes the author email", async ({ content, page }) => {
+    test("never exposes the author email", { tag: "@AC-CNT-08" }, async ({ content, page }) => {
       test.skip(
         !AUTHOR_EMAIL,
         "No author email in front/package.json. Set author as { name, email } there to enable",
@@ -107,14 +123,18 @@ test.describe("About page", () => {
       expect(await page.content()).not.toContain(AUTHOR_EMAIL);
     });
 
-    test("AC-CNT-09 shows the author even when the health API fails", async ({ content, page }) => {
-      await page.route(HEALTH_ROUTE, async (route) => {
-        await route.fulfill({ status: 500 });
-      });
+    test(
+      "shows the author even when the health API fails",
+      { tag: "@AC-CNT-09" },
+      async ({ content, page }) => {
+        await page.route(HEALTH_ROUTE, async (route) => {
+          await route.fulfill({ status: 500 });
+        });
 
-      await content.goto("/about");
-      await expect(content.healthUnavailableMessage).toBeVisible();
-      await expect(content.authorLabel(AUTHOR_NAME)).toBeVisible();
-    });
+        await content.goto("/about");
+        await expect(content.healthUnavailableMessage).toBeVisible();
+        await expect(content.authorLabel(AUTHOR_NAME)).toBeVisible();
+      },
+    );
   });
 });

@@ -24,125 +24,129 @@ const holdPostRequests = async (page: Page, path: string): Promise<() => void> =
 };
 
 test.describe("Register then login", () => {
-  test("AC-AUT-06 registering confirms success, and login shows the user in navigation", async ({
-    loginPage,
-    navigation,
-    page,
-    registerPage,
-  }) => {
-    const email = uniqueEmail("ui-flow");
-    const { name, password } = authData.users.ada;
+  test(
+    "registering confirms success, and login shows the user in navigation",
+    { tag: "@AC-AUT-06" },
+    async ({ loginPage, navigation, page, registerPage }) => {
+      const email = uniqueEmail("ui-flow");
+      const { name, password } = authData.users.ada;
 
-    await registerPage.goto();
-    await registerPage.submit({ email, name, password });
+      await registerPage.goto();
+      await registerPage.submit({ email, name, password });
 
-    await expect(page).toHaveURL("/login?registered=1");
-    await expect(
-      loginPage.registrationSuccessMessage(authData.messages.registrationSuccess),
-    ).toBeVisible();
+      await expect(page).toHaveURL("/login?registered=1");
+      await expect(
+        loginPage.registrationSuccessMessage(authData.messages.registrationSuccess),
+      ).toBeVisible();
 
-    await loginPage.submit({ email, password });
-    await expect(page).toHaveURL("/");
-    await expect(navigation.authenticatedUser(name, "user")).toBeVisible();
-  });
+      await loginPage.submit({ email, password });
+      await expect(page).toHaveURL("/");
+      await expect(navigation.authenticatedUser(name, "user")).toBeVisible();
+    },
+  );
 
-  test("AC-AUT-13 the register form has no Role field", async ({ page, registerPage }) => {
-    await registerPage.goto();
-    await expect(page.getByRole("combobox", { name: "Role" })).toHaveCount(0);
-    await expect(page.getByLabel("Role")).toHaveCount(0);
-  });
+  test(
+    "the register form has no Role field",
+    { tag: "@AC-AUT-13" },
+    async ({ page, registerPage }) => {
+      await registerPage.goto();
+      await expect(page.getByRole("combobox", { name: "Role" })).toHaveCount(0);
+      await expect(page.getByLabel("Role")).toHaveCount(0);
+    },
+  );
 });
 
 test.describe("Register errors", () => {
-  test("AC-AUT-07 shows duplicate email error and allows a retry", async ({
-    authClient,
-    page,
-    registerPage,
-  }) => {
-    const email = uniqueEmail("ui-dup");
-    await authClient.registerUser({
-      email,
-      name: authData.users.ada.name,
-      password: "first-pw",
-    });
+  test(
+    "shows duplicate email error and allows a retry",
+    { tag: "@AC-AUT-07" },
+    async ({ authClient, page, registerPage }) => {
+      const email = uniqueEmail("ui-dup");
+      await authClient.registerUser({
+        email,
+        name: authData.users.ada.name,
+        password: "first-pw",
+      });
 
-    await registerPage.goto();
-    await registerPage.submit({ email, name: "Ada 2", password: "second-pw" });
-    await registerPage.expectError(authData.messages.emailAlreadyRegistered);
-    await expect(page).toHaveURL(/\/register/);
-    await expect(registerPage.submitButton).toBeEnabled();
+      await registerPage.goto();
+      await registerPage.submit({ email, name: "Ada 2", password: "second-pw" });
+      await registerPage.expectError(authData.messages.emailAlreadyRegistered);
+      await expect(page).toHaveURL(/\/register/);
+      await expect(registerPage.submitButton).toBeEnabled();
 
-    await registerPage.submit({
-      email: uniqueEmail("ui-dup-retry"),
-      name: "Ada 2",
-      password: "second-pw",
-    });
-    await expect(page).toHaveURL(/\/login/);
-  });
+      await registerPage.submit({
+        email: uniqueEmail("ui-dup-retry"),
+        name: "Ada 2",
+        password: "second-pw",
+      });
+      await expect(page).toHaveURL(/\/login/);
+    },
+  );
 });
 
 test.describe("Login errors", () => {
-  test("AC-AUT-08 shows wrong password error and allows a retry", async ({
-    authClient,
-    loginPage,
-    page,
-  }) => {
-    const email = uniqueEmail("ui-badpw");
-    const password = "correct-pw";
-    await authClient.registerUser({ email, name: "Ada", password });
+  test(
+    "shows wrong password error and allows a retry",
+    { tag: "@AC-AUT-08" },
+    async ({ authClient, loginPage, page }) => {
+      const email = uniqueEmail("ui-badpw");
+      const password = "correct-pw";
+      await authClient.registerUser({ email, name: "Ada", password });
 
-    await loginPage.goto();
-    await loginPage.submit({ email, password: "wrong-pw" });
-    await loginPage.expectError(authData.messages.invalidCredentials);
-    await expect(page).toHaveURL(/\/login/);
-    await expect(loginPage.submitButton).toBeEnabled();
+      await loginPage.goto();
+      await loginPage.submit({ email, password: "wrong-pw" });
+      await loginPage.expectError(authData.messages.invalidCredentials);
+      await expect(page).toHaveURL(/\/login/);
+      await expect(loginPage.submitButton).toBeEnabled();
 
-    await loginPage.submit({ email, password });
-    await expect(page).toHaveURL("/");
-  });
+      await loginPage.submit({ email, password });
+      await expect(page).toHaveURL("/");
+    },
+  );
 });
 
 test.describe("Double submit", () => {
-  test("AC-AUT-09 clicking Register twice sends one registration request", async ({
-    page,
-    registerPage,
-  }) => {
-    await registerPage.goto();
-    await registerPage.fill({
-      email: uniqueEmail("ui-double-register"),
-      name: authData.users.ada.name,
-      password: authData.users.ada.password,
-    });
+  test(
+    "clicking Register twice sends one registration request",
+    { tag: "@AC-AUT-09" },
+    async ({ page, registerPage }) => {
+      await registerPage.goto();
+      await registerPage.fill({
+        email: uniqueEmail("ui-double-register"),
+        name: authData.users.ada.name,
+        password: authData.users.ada.password,
+      });
 
-    const registerRequests = countPostRequests(page, "/api/auth/register");
-    const releaseRequest = await holdPostRequests(page, "/api/auth/register");
-    await registerPage.submitButton.dblclick();
-    await expect(registerPage.submitButton).toBeDisabled();
-    releaseRequest();
+      const registerRequests = countPostRequests(page, "/api/auth/register");
+      const releaseRequest = await holdPostRequests(page, "/api/auth/register");
+      await registerPage.submitButton.dblclick();
+      await expect(registerPage.submitButton).toBeDisabled();
+      releaseRequest();
 
-    await expect(page).toHaveURL(/\/login/);
-    expect(registerRequests()).toBe(1);
-  });
+      await expect(page).toHaveURL(/\/login/);
+      expect(registerRequests()).toBe(1);
+    },
+  );
 
-  test("AC-AUT-10 clicking Log in twice sends one login request", async ({
-    authClient,
-    loginPage,
-    page,
-  }) => {
-    const email = uniqueEmail("ui-double-login");
-    const password = authData.users.ada.password;
-    await authClient.registerUser({ email, name: "Ada", password });
+  test(
+    "clicking Log in twice sends one login request",
+    { tag: "@AC-AUT-10" },
+    async ({ authClient, loginPage, page }) => {
+      const email = uniqueEmail("ui-double-login");
+      const password = authData.users.ada.password;
+      await authClient.registerUser({ email, name: "Ada", password });
 
-    await loginPage.goto();
-    await loginPage.fill({ email, password });
+      await loginPage.goto();
+      await loginPage.fill({ email, password });
 
-    const loginRequests = countPostRequests(page, "/api/auth/login");
-    const releaseRequest = await holdPostRequests(page, "/api/auth/login");
-    await loginPage.submitButton.dblclick();
-    await expect(loginPage.submitButton).toBeDisabled();
-    releaseRequest();
+      const loginRequests = countPostRequests(page, "/api/auth/login");
+      const releaseRequest = await holdPostRequests(page, "/api/auth/login");
+      await loginPage.submitButton.dblclick();
+      await expect(loginPage.submitButton).toBeDisabled();
+      releaseRequest();
 
-    await expect(page).toHaveURL("/");
-    expect(loginRequests()).toBe(1);
-  });
+      await expect(page).toHaveURL("/");
+      expect(loginRequests()).toBe(1);
+    },
+  );
 });

@@ -38,4 +38,4 @@ export const test = base.extend<PageFixtures & ClientFixtures>({
   },
 });
 
-export { expect } from "@playwright/test";
+export { expect } from "./matchers.js";

@@ -1,4 +1,5 @@
-import { type APIRequestContext, type APIResponse, expect } from "@playwright/test";
+import { type APIRequestContext, type APIResponse } from "@playwright/test";
+import { expect } from "../fixtures/matchers.js";
 
 const REGISTER_PATH = "/api/auth/register";
 const LOGIN_PATH = "/api/auth/login";
@@ -43,14 +44,14 @@ export class AuthClient {
   /** Arranges a registered user for tests whose subject is something else. */
   async registerUser(user: NewUser): Promise<AuthUser> {
     const response = await this.register(user);
-    expect(response.status(), `POST ${REGISTER_PATH}`).toBe(201);
+    await expect(response).toHaveStatus(201);
     return (await response.json()) as AuthUser;
   }
 
   /** Arranges a logged-in session for a registered user. */
   async loginUser(user: Pick<NewUser, "email" | "password">): Promise<AuthSession> {
     const response = await this.login(user);
-    expect(response.status(), `POST ${LOGIN_PATH}`).toBe(200);
+    await expect(response).toHaveStatus(200);
     return (await response.json()) as AuthSession;
   }
 }

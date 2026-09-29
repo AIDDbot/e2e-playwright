@@ -18,55 +18,55 @@ const expectSameDocument = async (page: Page): Promise<void> => {
 };
 
 test.describe("Client-side navigation", () => {
-  test("AC-RTE-01 follows menu, title and content links without a full reload", async ({
-    content,
-    navigation,
-    page,
-  }) => {
-    await content.goto("/");
-    await expect(content.heading()).toHaveText(APP_TITLE);
-    await markDocument(page);
+  test(
+    "follows menu, title and content links without a full reload",
+    { tag: "@AC-RTE-01" },
+    async ({ content, navigation, page }) => {
+      await content.goto("/");
+      await expect(content.heading()).toHaveText(APP_TITLE);
+      await markDocument(page);
 
-    await navigation.aboutLink().click();
-    await expect(page).toHaveURL("/about");
-    await expect(page).toHaveTitle(`About — ${APP_TITLE}`);
-    await expect(content.heading()).toHaveText("About");
+      await navigation.aboutLink().click();
+      await expect(page).toHaveURL("/about");
+      await expect(page).toHaveTitle(`About — ${APP_TITLE}`);
+      await expect(content.heading()).toHaveText("About");
 
-    await navigation.appLink(APP_TITLE).click();
-    await expect(page).toHaveURL("/");
-    await expect(page).toHaveTitle(APP_TITLE);
+      await navigation.appLink(APP_TITLE).click();
+      await expect(page).toHaveURL("/");
+      await expect(page).toHaveTitle(APP_TITLE);
 
-    await content.main.getByRole("link").first().click();
-    await expect(page).toHaveURL("/items/1");
-    await expect(page).toHaveTitle("Item — Details");
-    await expect(content.heading()).toHaveText("Item #1");
+      await content.main.getByRole("link").first().click();
+      await expect(page).toHaveURL("/items/1");
+      await expect(page).toHaveTitle("Item — Details");
+      await expect(content.heading()).toHaveText("Item #1");
 
-    await expectSameDocument(page);
-  });
+      await expectSameDocument(page);
+    },
+  );
 
-  test("AC-RTE-02 honours browser back and forward without a full reload", async ({
-    content,
-    navigation,
-    page,
-  }) => {
-    await content.goto("/");
-    await expect(content.heading()).toHaveText(APP_TITLE);
-    await markDocument(page);
-    await navigation.aboutLink().click();
-    await expect(page).toHaveURL("/about");
+  test(
+    "honours browser back and forward without a full reload",
+    { tag: "@AC-RTE-02" },
+    async ({ content, navigation, page }) => {
+      await content.goto("/");
+      await expect(content.heading()).toHaveText(APP_TITLE);
+      await markDocument(page);
+      await navigation.aboutLink().click();
+      await expect(page).toHaveURL("/about");
 
-    await page.goBack();
-    await expect(page).toHaveURL("/");
-    await expect(page).toHaveTitle(APP_TITLE);
-    await expect(content.heading()).toHaveText(APP_TITLE);
+      await page.goBack();
+      await expect(page).toHaveURL("/");
+      await expect(page).toHaveTitle(APP_TITLE);
+      await expect(content.heading()).toHaveText(APP_TITLE);
 
-    await page.goForward();
-    await expect(page).toHaveURL("/about");
-    await expect(page).toHaveTitle(`About — ${APP_TITLE}`);
-    await expect(content.heading()).toHaveText("About");
+      await page.goForward();
+      await expect(page).toHaveURL("/about");
+      await expect(page).toHaveTitle(`About — ${APP_TITLE}`);
+      await expect(content.heading()).toHaveText("About");
 
-    await expectSameDocument(page);
-  });
+      await expectSameDocument(page);
+    },
+  );
 });
 
 test.describe("Direct access", () => {
@@ -77,14 +77,18 @@ test.describe("Direct access", () => {
   ];
 
   for (const { heading, path } of routes) {
-    test(`AC-RTE-03 renders ${path} when opened by URL and reloaded`, async ({ content, page }) => {
-      await content.goto(path);
-      await expect(content.heading()).toHaveText(heading);
+    test(
+      `renders ${path} when opened by URL and reloaded`,
+      { tag: "@AC-RTE-03" },
+      async ({ content, page }) => {
+        await content.goto(path);
+        await expect(content.heading()).toHaveText(heading);
 
-      await page.reload();
-      await expect(page).toHaveURL(path);
-      await expect(content.heading()).toHaveText(heading);
-    });
+        await page.reload();
+        await expect(page).toHaveURL(path);
+        await expect(content.heading()).toHaveText(heading);
+      },
+    );
   }
 });
 
@@ -130,45 +134,47 @@ test.describe("Assets on direct access", () => {
     expect(outcomes.map(({ path }) => path)).toContain(THEME_STYLESHEET);
 
     const icon = await page.request.get(await content.iconUrl());
-    expect(icon.status(), `GET ${icon.url()}`).toBe(HTTP_OK);
+    await expect(icon).toHaveStatus(HTTP_OK);
     expect(new URL(icon.url()).pathname).toBe("/logo.png");
 
     expect(await content.themeToken()).toBe(THEME_TOKEN);
   };
 
   for (const { heading, path } of routes) {
-    test(`AC-RTE-05 loads stylesheets and logo for ${path} when opened by URL and reloaded`, async ({
-      content,
-      page,
-    }) => {
-      // Routing disables the HTTP cache, so the reload fetches again instead of answering 304
-      await page.route("**/*", async (route) => route.continue());
-      const stylesheets = logStylesheets(page);
+    test(
+      `loads stylesheets and logo for ${path} when opened by URL and reloaded`,
+      { tag: "@AC-RTE-05" },
+      async ({ content, page }) => {
+        // Routing disables the HTTP cache, so the reload fetches again instead of answering 304
+        await page.route("**/*", async (route) => route.continue());
+        const stylesheets = logStylesheets(page);
 
-      await content.goto(path);
-      await expect(content.heading()).toHaveText(heading);
-      await expectStyledPage(content, page, stylesheets);
+        await content.goto(path);
+        await expect(content.heading()).toHaveText(heading);
+        await expectStyledPage(content, page, stylesheets);
 
-      stylesheets.clear();
-      await page.reload();
-      await expect(content.heading()).toHaveText(heading);
-      await expectStyledPage(content, page, stylesheets);
-    });
+        stylesheets.clear();
+        await page.reload();
+        await expect(content.heading()).toHaveText(heading);
+        await expectStyledPage(content, page, stylesheets);
+      },
+    );
   }
 });
 
 test.describe("Unknown routes", () => {
-  test("AC-RTE-04 shows not found with the requested path and a link home", async ({
-    content,
-    page,
-  }) => {
-    await content.goto("/no/such/page");
+  test(
+    "shows not found with the requested path and a link home",
+    { tag: "@AC-RTE-04" },
+    async ({ content, page }) => {
+      await content.goto("/no/such/page");
 
-    await expect(content.heading()).toHaveText("Page not found");
-    await expect(content.main.getByText("/no/such/page")).toBeVisible();
+      await expect(content.heading()).toHaveText("Page not found");
+      await expect(content.main.getByText("/no/such/page")).toBeVisible();
 
-    await content.homeLink().click();
-    await expect(page).toHaveURL("/");
-    await expect(content.heading()).toHaveText(APP_TITLE);
-  });
+      await content.homeLink().click();
+      await expect(page).toHaveURL("/");
+      await expect(content.heading()).toHaveText(APP_TITLE);
+    },
+  );
 });
