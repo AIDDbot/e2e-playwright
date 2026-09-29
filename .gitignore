@@ -148,3 +148,6 @@ vite.config.ts.timestamp-*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Local scratch notes and drafts
+/temp/

@@ -40,7 +40,9 @@ test.describe("Item detail page", () => {
     "renders the id as literal text, not markup",
     { tag: "@AC-CNT-03" },
     async ({ itemPage }) => {
-      const id = "&lt;b&gt;bold";
+      // The router passes the raw path segment and the browser percent-encodes < and >, so a
+    // literal <b> never reaches the page; an entity is the payload that would turn into markup
+    const id = "&lt;b&gt;bold";
       await itemPage.goto(id);
 
       await expect(itemPage.heading()).toHaveText(copy.item.heading(id));

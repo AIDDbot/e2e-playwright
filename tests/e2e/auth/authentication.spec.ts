@@ -142,3 +142,19 @@ test.describe("Double submit", () => {
     },
   );
 });
+
+test.describe("Session", () => {
+  test(
+    "keeps the user signed in after a reload",
+    { tag: "@auth-session" },
+    async ({ homePage, page, signedInUser }) => {
+      const { name, session } = signedInUser;
+      const currentUser = homePage.navigation.authenticatedUser(name, session.user.role);
+      await homePage.goto();
+      await expect(currentUser).toBeVisible();
+
+      await page.reload();
+      await expect(currentUser).toBeVisible();
+    },
+  );
+});
