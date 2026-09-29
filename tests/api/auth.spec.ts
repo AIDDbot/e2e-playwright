@@ -1,6 +1,6 @@
 import { type APIRequestContext, expect, test } from "@playwright/test";
-import authFixture from "../fixtures/auth.json" with { type: "json" };
-import { uniqueEmail } from "../fixtures/test-data.js";
+import authData from "../test-data/auth.json" with { type: "json" };
+import { uniqueEmail } from "../test-data/unique.js";
 
 const BACK_URL = process.env["E2E_BACK_URL"];
 const REGISTER_PATH = "/api/auth/register";
@@ -37,15 +37,15 @@ test.describe("Auth API — register", () => {
     const email = uniqueEmail("reg");
     const response = await registerUser(request, {
       email: ` ${email.toUpperCase()} `,
-      name: authFixture.users.ada.name,
-      password: authFixture.users.ada.password,
+      name: authData.users.ada.name,
+      password: authData.users.ada.password,
     });
 
     expect(response.status()).toBe(201);
     const user = (await response.json()) as AuthUser;
     expect(user.id).toEqual(expect.any(Number));
     expect(user.email).toBe(email);
-    expect(user.name).toBe(authFixture.users.ada.name);
+    expect(user.name).toBe(authData.users.ada.name);
     expect(user.role).toBe("user");
     expect(user.createdAt).toEqual(expect.any(String));
     expect(user).not.toHaveProperty("password");
@@ -59,7 +59,7 @@ test.describe("Auth API — register", () => {
     const email = uniqueEmail("dup");
     const first = await registerUser(request, {
       email,
-      name: authFixture.users.ada.name,
+      name: authData.users.ada.name,
       password: "first-pw",
     });
     expect(first.status()).toBe(201);
@@ -71,7 +71,7 @@ test.describe("Auth API — register", () => {
     });
     expect(second.status()).toBe(409);
     const secondBody = (await second.json()) as { error: string };
-    expect(secondBody.error).toBe(authFixture.messages.emailAlreadyRegistered);
+    expect(secondBody.error).toBe(authData.messages.emailAlreadyRegistered);
 
     const login = await loginUser(request, { email, password: "first-pw" });
     expect(login.status()).toBe(200);
@@ -87,7 +87,7 @@ test.describe("Auth API — register", () => {
     });
     expect(missingName.status()).toBe(400);
     const missingNameBody = (await missingName.json()) as { error: string };
-    expect(missingNameBody.error).toBe(authFixture.messages.requiredFields);
+    expect(missingNameBody.error).toBe(authData.messages.requiredFields);
 
     const missingNameLogin = await loginUser(request, {
       email: missingNameEmail,
@@ -107,7 +107,7 @@ test.describe("Auth API — register", () => {
     });
     expect(emptyPassword.status()).toBe(400);
     const emptyPasswordBody = (await emptyPassword.json()) as { error: string };
-    expect(emptyPasswordBody.error).toBe(authFixture.messages.requiredFields);
+    expect(emptyPasswordBody.error).toBe(authData.messages.requiredFields);
 
     const emptyPasswordLogin = await loginUser(request, {
       email: emptyPasswordEmail,
@@ -124,7 +124,7 @@ test.describe("Auth API — register", () => {
     });
     expect(nonStringEmail.status()).toBe(400);
     const nonStringEmailBody = (await nonStringEmail.json()) as { error: string };
-    expect(nonStringEmailBody.error).toBe(authFixture.messages.requiredFields);
+    expect(nonStringEmailBody.error).toBe(authData.messages.requiredFields);
   });
 
   test("AC-AUT-12 ignores a client-supplied role and always stores/returns role user", async ({
@@ -134,7 +134,7 @@ test.describe("Auth API — register", () => {
     const response = await registerUser(request, {
       email,
       name: "Ada",
-      password: authFixture.users.ada.password,
+      password: authData.users.ada.password,
       role: "admin",
     });
 
@@ -151,14 +151,14 @@ test.describe("Auth API — login", () => {
     const email = uniqueEmail("login-ok");
     const registerResponse = await registerUser(request, {
       email,
-      name: authFixture.users.grace.name,
-      password: authFixture.users.grace.password,
+      name: authData.users.grace.name,
+      password: authData.users.grace.password,
     });
     expect(registerResponse.status()).toBe(201);
 
     const response = await loginUser(request, {
       email,
-      password: authFixture.users.grace.password,
+      password: authData.users.grace.password,
     });
 
     expect(response.status()).toBe(200);
@@ -166,7 +166,7 @@ test.describe("Auth API — login", () => {
     expect(session.token).toEqual(expect.any(String));
     expect(session.token.length).toBeGreaterThan(0);
     expect(session.user.email).toBe(email);
-    expect(session.user.name).toBe(authFixture.users.grace.name);
+    expect(session.user.name).toBe(authData.users.grace.name);
     expect(session.user.role).toBe("user");
     expect(session.user).not.toHaveProperty("password");
     expect(session.user).not.toHaveProperty("passwordHash");
@@ -187,7 +187,7 @@ test.describe("Auth API — login", () => {
     const wrongPassword = await loginUser(request, { email, password: "wrong-pw" });
     expect(wrongPassword.status()).toBe(401);
     const wrongPasswordBody = (await wrongPassword.json()) as { error: string };
-    expect(wrongPasswordBody.error).toBe(authFixture.messages.invalidCredentials);
+    expect(wrongPasswordBody.error).toBe(authData.messages.invalidCredentials);
 
     const unknownEmail = await loginUser(request, {
       email: uniqueEmail("unknown"),
@@ -195,7 +195,7 @@ test.describe("Auth API — login", () => {
     });
     expect(unknownEmail.status()).toBe(401);
     const unknownEmailBody = (await unknownEmail.json()) as { error: string };
-    expect(unknownEmailBody.error).toBe(authFixture.messages.invalidCredentials);
+    expect(unknownEmailBody.error).toBe(authData.messages.invalidCredentials);
   });
 });
 
@@ -224,13 +224,13 @@ test.describe("Auth API — session guard", () => {
     const email = uniqueEmail("me");
     const registerResponse = await registerUser(request, {
       email,
-      name: authFixture.users.ada.name,
-      password: authFixture.users.ada.password,
+      name: authData.users.ada.name,
+      password: authData.users.ada.password,
     });
     expect(registerResponse.status()).toBe(201);
     const loginResponse = await loginUser(request, {
       email,
-      password: authFixture.users.ada.password,
+      password: authData.users.ada.password,
     });
     expect(loginResponse.status()).toBe(200);
     const session = (await loginResponse.json()) as AuthSession;

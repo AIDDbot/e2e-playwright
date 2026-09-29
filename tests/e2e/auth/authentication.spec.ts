@@ -1,6 +1,6 @@
 import { type APIRequestContext, type Page, expect, test } from "@playwright/test";
-import authFixture from "../../fixtures/auth.json" with { type: "json" };
-import { uniqueEmail } from "../../fixtures/test-data.js";
+import authData from "../../test-data/auth.json" with { type: "json" };
+import { uniqueEmail } from "../../test-data/unique.js";
 import { LoginPage, RegisterPage } from "../../pages/auth.page.js";
 import { NavigationPage } from "../../pages/navigation.page.js";
 
@@ -39,7 +39,7 @@ test.describe("Register then login", () => {
     page,
   }) => {
     const email = uniqueEmail("ui-flow");
-    const { name, password } = authFixture.users.ada;
+    const { name, password } = authData.users.ada;
     const registerPage = new RegisterPage(page);
     const loginPage = new LoginPage(page);
 
@@ -48,7 +48,7 @@ test.describe("Register then login", () => {
 
     await expect(page).toHaveURL("/login?registered=1");
     await expect(
-      loginPage.registrationSuccessMessage(authFixture.messages.registrationSuccess),
+      loginPage.registrationSuccessMessage(authData.messages.registrationSuccess),
     ).toBeVisible();
 
     await loginPage.submit({ email, password });
@@ -68,14 +68,14 @@ test.describe("Register errors", () => {
     const email = uniqueEmail("ui-dup");
     await registerViaApi(request, {
       email,
-      name: authFixture.users.ada.name,
+      name: authData.users.ada.name,
       password: "first-pw",
     });
 
     const registerPage = new RegisterPage(page);
     await registerPage.goto();
     await registerPage.submit({ email, name: "Ada 2", password: "second-pw" });
-    await registerPage.expectError(authFixture.messages.emailAlreadyRegistered);
+    await registerPage.expectError(authData.messages.emailAlreadyRegistered);
     await expect(page).toHaveURL(/\/register/);
     await expect(registerPage.submitButton).toBeEnabled();
 
@@ -97,7 +97,7 @@ test.describe("Login errors", () => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.submit({ email, password: "wrong-pw" });
-    await loginPage.expectError(authFixture.messages.invalidCredentials);
+    await loginPage.expectError(authData.messages.invalidCredentials);
     await expect(page).toHaveURL(/\/login/);
     await expect(loginPage.submitButton).toBeEnabled();
 
@@ -112,8 +112,8 @@ test.describe("Double submit", () => {
     await registerPage.goto();
     await registerPage.fill({
       email: uniqueEmail("ui-double-register"),
-      name: authFixture.users.ada.name,
-      password: authFixture.users.ada.password,
+      name: authData.users.ada.name,
+      password: authData.users.ada.password,
     });
 
     const registerRequests = countPostRequests(page, "/api/auth/register");
@@ -128,7 +128,7 @@ test.describe("Double submit", () => {
 
   test("AC-AUT-10 clicking Log in twice sends one login request", async ({ page, request }) => {
     const email = uniqueEmail("ui-double-login");
-    const password = authFixture.users.ada.password;
+    const password = authData.users.ada.password;
     await registerViaApi(request, { email, name: "Ada", password });
 
     const loginPage = new LoginPage(page);
