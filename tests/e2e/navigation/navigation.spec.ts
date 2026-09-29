@@ -1,7 +1,6 @@
 import { expect, test } from "../../fixtures/index.js";
 import { appTitle } from "../../support/run-context.js";
 
-const APP_TITLE = appTitle;
 const PAGES = ["/", "/about", "/items/1", "/no/such/page"];
 
 test.describe("Navigation bar", () => {
@@ -9,12 +8,13 @@ test.describe("Navigation bar", () => {
     test(
       `shows title, menu and theme toggle on ${path}`,
       { tag: "@AC-NAV-01" },
-      async ({ navigation }) => {
-        await navigation.goto(path);
+      async ({ appPage }) => {
+        const { navigation } = appPage;
+        await appPage.open(path);
 
-        await expect(navigation.appLink(APP_TITLE)).toHaveAttribute("href", "/");
-        await expect(navigation.homeLink()).toHaveAttribute("href", "/");
-        await expect(navigation.aboutLink()).toHaveAttribute("href", "/about");
+        await expect(navigation.appLink(appTitle)).toHaveAttribute("href", "/");
+        await expect(navigation.homeLink).toHaveAttribute("href", "/");
+        await expect(navigation.aboutLink).toHaveAttribute("href", "/about");
         await expect(navigation.themeToggle).toBeVisible();
       },
     );
@@ -22,42 +22,34 @@ test.describe("Navigation bar", () => {
 });
 
 test.describe("Theme toggle", () => {
-  test(
-    "switches between dark and light themes",
-    { tag: "@AC-NAV-02" },
-    async ({ navigation, page }) => {
-      await navigation.goto();
-      const toggle = navigation.themeToggle;
-      await expect(toggle).toBeVisible();
-      // No accessible handle for the document theme: read it from <html>
-      const html = page.locator("html");
-      const initial = await html.getAttribute("data-theme");
-      const other = initial === "dark" ? "light" : "dark";
+  test("switches between dark and light themes", { tag: "@AC-NAV-02" }, async ({ homePage }) => {
+    const { navigation } = homePage;
+    await homePage.goto();
+    await expect(navigation.themeToggle).toBeVisible();
+    const initial = await navigation.theme();
+    const other = await navigation.otherTheme();
 
-      await toggle.click();
-      await expect(html).toHaveAttribute("data-theme", other);
+    await navigation.themeToggle.click();
+    await expect(navigation.themeRoot).toHaveAttribute("data-theme", other);
 
-      await toggle.click();
-      await expect(html).toHaveAttribute("data-theme", initial ?? "");
-    },
-  );
+    await navigation.themeToggle.click();
+    await expect(navigation.themeRoot).toHaveAttribute("data-theme", initial);
+  });
 
   test(
     "keeps the chosen theme after a reload",
     { tag: "@AC-NAV-03" },
-    async ({ navigation, page }) => {
-      await navigation.goto();
-      const toggle = navigation.themeToggle;
-      await expect(toggle).toBeVisible();
-      const html = page.locator("html");
-      const initial = await html.getAttribute("data-theme");
-      const other = initial === "dark" ? "light" : "dark";
+    async ({ homePage, page }) => {
+      const { navigation } = homePage;
+      await homePage.goto();
+      await expect(navigation.themeToggle).toBeVisible();
+      const other = await navigation.otherTheme();
 
-      await toggle.click();
+      await navigation.themeToggle.click();
       await page.reload();
 
-      await expect(toggle).toBeVisible();
-      await expect(html).toHaveAttribute("data-theme", other);
+      await expect(navigation.themeToggle).toBeVisible();
+      await expect(navigation.themeRoot).toHaveAttribute("data-theme", other);
     },
   );
 });

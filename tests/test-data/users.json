@@ -1,0 +1,10 @@
+{
+  "ada": {
+    "name": "Ada Lovelace",
+    "password": "s3cret-pw"
+  },
+  "grace": {
+    "name": "Grace Hopper",
+    "password": "s3cret-pw"
+  }
+}

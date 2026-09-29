@@ -1,6 +1,7 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "../../fixtures/index.js";
-import authData from "../../test-data/auth.json" with { type: "json" };
+import { copy } from "../../test-data/copy.js";
+import users from "../../test-data/users.json" with { type: "json" };
 import { uniqueEmail } from "../../test-data/unique.js";
 
 const countPostRequests = (page: Page, path: string): (() => number) => {
@@ -24,33 +25,27 @@ test.describe("Register then login", () => {
   test(
     "registering confirms success, and login shows the user in navigation",
     { tag: "@AC-AUT-06" },
-    async ({ loginPage, navigation, page, registerPage }) => {
+    async ({ loginPage, page, registerPage }) => {
       const email = uniqueEmail("ui-flow");
-      const { name, password } = authData.users.ada;
+      const { name, password } = users.ada;
 
       await registerPage.goto();
       await registerPage.submit({ email, name, password });
 
       await expect(page).toHaveURL("/login?registered=1");
-      await expect(
-        loginPage.registrationSuccessMessage(authData.messages.registrationSuccess),
-      ).toBeVisible();
+      await expect(loginPage.registrationSuccessMessage).toBeVisible();
 
       await loginPage.submit({ email, password });
       await expect(page).toHaveURL("/");
-      await expect(navigation.authenticatedUser(name, "user")).toBeVisible();
+      await expect(loginPage.navigation.authenticatedUser(name, "user")).toBeVisible();
     },
   );
 
-  test(
-    "the register form has no Role field",
-    { tag: "@AC-AUT-13" },
-    async ({ page, registerPage }) => {
-      await registerPage.goto();
-      await expect(page.getByRole("combobox", { name: "Role" })).toHaveCount(0);
-      await expect(page.getByLabel("Role")).toHaveCount(0);
-    },
-  );
+  test("the register form has no Role field", { tag: "@AC-AUT-13" }, async ({ registerPage }) => {
+    await registerPage.goto();
+    await expect(registerPage.nameInput).toBeVisible();
+    await expect(registerPage.roleInputs).toHaveCount(0);
+  });
 });
 
 test.describe("Register errors", () => {
@@ -61,13 +56,13 @@ test.describe("Register errors", () => {
       const email = uniqueEmail("ui-dup");
       await authClient.registerUser({
         email,
-        name: authData.users.ada.name,
+        name: users.ada.name,
         password: "first-pw",
       });
 
       await registerPage.goto();
       await registerPage.submit({ email, name: "Ada 2", password: "second-pw" });
-      await registerPage.expectError(authData.messages.emailAlreadyRegistered);
+      await registerPage.expectError(copy.auth.emailAlreadyRegistered);
       await expect(page).toHaveURL(/\/register/);
       await expect(registerPage.submitButton).toBeEnabled();
 
@@ -92,7 +87,7 @@ test.describe("Login errors", () => {
 
       await loginPage.goto();
       await loginPage.submit({ email, password: "wrong-pw" });
-      await loginPage.expectError(authData.messages.invalidCredentials);
+      await loginPage.expectError(copy.auth.invalidCredentials);
       await expect(page).toHaveURL(/\/login/);
       await expect(loginPage.submitButton).toBeEnabled();
 
@@ -110,8 +105,8 @@ test.describe("Double submit", () => {
       await registerPage.goto();
       await registerPage.fill({
         email: uniqueEmail("ui-double-register"),
-        name: authData.users.ada.name,
-        password: authData.users.ada.password,
+        name: users.ada.name,
+        password: users.ada.password,
       });
 
       const registerRequests = countPostRequests(page, "/api/auth/register");
@@ -130,7 +125,7 @@ test.describe("Double submit", () => {
     { tag: "@AC-AUT-10" },
     async ({ authClient, loginPage, page }) => {
       const email = uniqueEmail("ui-double-login");
-      const password = authData.users.ada.password;
+      const password = users.ada.password;
       await authClient.registerUser({ email, name: "Ada", password });
 
       await loginPage.goto();
