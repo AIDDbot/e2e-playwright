@@ -1,0 +1,102 @@
+{
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:playwright/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "playwright",
+    "testing-library"
+  ],
+  "rules": {
+    /* Playwright Best Practices */
+    "playwright/no-eval": "error",
+    "playwright/no-wait-for-timeout": "error",
+    "playwright/valid-expect": "error",
+    "playwright/no-focused-test": "error",
+    "playwright/no-skipped-test": "warn",
+    "playwright/valid-expect-in-promise": "error",
+    /* Custom Rules for Test Data & Selectors */
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "CallExpression[callee.object.name='page'][callee.property.name='locator'][arguments.0.type='Literal'][arguments.0.value=/^[.#]/]",
+        "message": "❌ Evita selectores CSS directos (.class, #id). Usa getByRole(), getByLabel(), o getByText() en su lugar para mejor accesibilidad y resiliencia."
+      },
+      {
+        "selector": "CallExpression[callee.property.name='locator'][arguments.0.type='Literal'][arguments.0.value=/^\\//]",
+        "message": "❌ Evita XPath. Usa getByRole(), getByLabel(), o getByText() para mejor legibilidad."
+      }
+    ],
+    "no-restricted-globals": [
+      "warn",
+      {
+        "name": "setInterval",
+        "message": "❌ Usa page.waitForLoadState() o expect() en lugar de setInterval/setTimeout"
+      },
+      {
+        "name": "setTimeout",
+        "message": "❌ Evita hardcoded waits. Usa page.waitForLoadState() o expect() con timeout automático"
+      }
+    ],
+    /* Type Safety */
+    "@typescript-eslint/explicit-function-return-types": "warn",
+    "@typescript-eslint/no-implicit-any": "error",
+    "@typescript-eslint/no-unused-vars": "warn",
+    /* Code Quality */
+    "no-console": [
+      "warn",
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ],
+    "prefer-const": "error",
+    "no-var": "error",
+    "eqeqeq": [
+      "error",
+      "always"
+    ],
+    "semi": [
+      "error",
+      "always"
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "tests/**/*.spec.ts",
+        "tests/**/*.test.ts"
+      ],
+      "rules": {
+        /* Tests can use more console for debugging */
+        "no-console": "off",
+        /* Require explicit return types in tests */
+        "@typescript-eslint/explicit-function-return-types": "off"
+      }
+    },
+    {
+      "files": [
+        "tests/pages/**/*.ts"
+      ],
+      "rules": {
+        /* Page objects should have explicit types */
+        "@typescript-eslint/explicit-function-return-types": "error"
+      }
+    }
+  ]
+}

@@ -48,13 +48,48 @@ reports/    # HTML and JSON reports (generated)
 
 ## Coding conventions
 
+> [!IMPORTANT]
+> **Two core practices for reliable, maintainable tests:**
+> 1. **Unique data per test** — Use `uniqueEmail(label)` to avoid data collisions in parallel runs.
+> 2. **Selectors by role** — Use `getByRole()`, `getByLabel()`, `getByText()` for accessibility and resilience.
+
 ### Selectors
 
 Prefer getting elements by role, label, or test ID rather than by CSS selectors directly. This improves test readability and resilience to UI changes.
 
+✅ **Good**: `page.getByRole("button", { name: "Log in" })`  
+✅ **Good**: `page.getByLabel("Password")`  
+❌ **Avoid**: `page.locator(".login-btn")`, `page.locator("#email-field")`
+
+### Test data
+
+Each test must generate or use unique data to avoid collisions in parallel runs:
+
+```typescript
+import { uniqueEmail } from "../test-data/unique.js";
+import users from "../test-data/users.json";
+
+// ✅ Unique per test
+const email = uniqueEmail("my-test");
+
+// ✅ Reusable shared data (base passwords, names)
+const { name, password } = users.ada;
+```
+
+For tests needing a signed-in user:
+```typescript
+// Use the fixture that auto-generates unique data and logs in
+test("protected route", async ({ signedInUser, page }) => {
+  const { name } = signedInUser;
+  // ...
+});
+```
+
 ### Assertions
 
 Prefer using Playwright's built-in assertion methods (`expect`) for verifying UI states and API responses. This ensures consistent and reliable test results. Feel free to use multiple assertions per test as needed.
+
+Use custom matchers in `tests/fixtures/matchers.ts` (`toHaveStatus`, `toBeApiError`, `toBePublicUser`) for API responses; their failures show the URL and the response body.
 
 ### Test organization
 
@@ -63,8 +98,6 @@ Organize tests by feature or user journey within the `tests/e2e` directory. Use 
 ### Naming conventions
 
 Use clear and descriptive names for test files, test cases, and page objects. This helps other developers quickly understand the purpose and scope of each test. For example, a test file for user login might be named `login.spec.ts`, and its page object `login.page.ts` exports `LoginPage`, which extends `AppPage`. Asserted texts (messages, headings, titles) live in `tests/test-data/copy.ts`; accessible names of controls stay in the page objects. Tag each test with the acceptance criterion it covers, `test("title", { tag: "@AC-AUT-01" }, ...)`, and run one criterion or a whole spec with `bun test:e2e --grep @AC-AUT`.
-
-API responses are checked with the custom matchers in `tests/fixtures/matchers.ts` (`toHaveStatus`, `toBeApiError`, `toBePublicUser`), whose failures show the URL and the response body.
 
 ## Target applications
 

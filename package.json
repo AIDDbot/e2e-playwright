@@ -1,15 +1,20 @@
 {
   "name": "e2e-playwright",
   "version": "0.2.0",
-  "config": {
-    "codename": "oktoberfest"
-  },
   "description": "End-to-end Playwright suite for api and web applications",
+  "keywords": [
+    "archetype",
+    "e2e",
+    "playwright",
+    "starter",
+    "test"
+  ],
   "homepage": "https://aiddbot.com",
   "license": "MIT",
   "author": {
     "name": "Alberto Basalo",
-    "url": "https://x.com/albertobasalo"
+    "email": "albertobasalo@aicode.academy",
+    "url": "https://aicode.academy"
   },
   "repository": "https://github.com/AIDDbot/e2e-playwright",
   "type": "module",
@@ -33,6 +38,9 @@
     "oxfmt": "^0.68.0",
     "oxlint": "^1.86.0",
     "oxlint-tsgolint": "^7.0.2003"
+  },
+  "config": {
+    "codename": "oktoberfest"
   },
   "engines": {
     "bun": ">=1.4.0",

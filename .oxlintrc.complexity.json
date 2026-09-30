@@ -2,12 +2,46 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": [],
   "categories": {},
-  "ignorePatterns": ["reports/**", "temp/**"],
+  "ignorePatterns": [
+    "reports/**",
+    "temp/**"
+  ],
   "rules": {
-    "complexity": ["error", { "max": 10 }],
-    "max-depth": ["error", { "max": 3 }],
-    "max-params": ["error", { "max": 4 }],
-    "max-nested-callbacks": ["error", { "max": 4 }],
-    "max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }]
+    "complexity": [
+      "error",
+      {
+        "max": 10
+      }
+    ],
+    "max-depth": [
+      "error",
+      {
+        "max": 3
+      }
+    ],
+    "import/max-dependencies": [
+      "error",
+      8
+    ],
+    "max-params": [
+      "error",
+      {
+        "max": 4
+      }
+    ],
+    "max-nested-callbacks": [
+      "error",
+      {
+        "max": 4
+      }
+    ],
+    "max-lines": [
+      "error",
+      {
+        "max": 300,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ]
   }
 }
