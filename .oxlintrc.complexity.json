@@ -2,10 +2,7 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": [],
   "categories": {},
-  "ignorePatterns": [
-    "reports/**",
-    "temp/**"
-  ],
+  "ignorePatterns": ["reports/**", "temp/**"],
   "rules": {
     "complexity": [
       "error",
@@ -19,10 +16,7 @@
         "max": 3
       }
     ],
-    "import/max-dependencies": [
-      "error",
-      8
-    ],
+    "import/max-dependencies": ["error", 8],
     "max-params": [
       "error",
       {

@@ -15,11 +15,7 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": [
-    "@typescript-eslint",
-    "playwright",
-    "testing-library"
-  ],
+  "plugins": ["@typescript-eslint", "playwright", "testing-library"],
   "rules": {
     /* Playwright Best Practices */
     "playwright/no-eval": "error",
@@ -59,29 +55,17 @@
     "no-console": [
       "warn",
       {
-        "allow": [
-          "warn",
-          "error"
-        ]
+        "allow": ["warn", "error"]
       }
     ],
     "prefer-const": "error",
     "no-var": "error",
-    "eqeqeq": [
-      "error",
-      "always"
-    ],
-    "semi": [
-      "error",
-      "always"
-    ]
+    "eqeqeq": ["error", "always"],
+    "semi": ["error", "always"]
   },
   "overrides": [
     {
-      "files": [
-        "tests/**/*.spec.ts",
-        "tests/**/*.test.ts"
-      ],
+      "files": ["tests/**/*.spec.ts", "tests/**/*.test.ts"],
       "rules": {
         /* Tests can use more console for debugging */
         "no-console": "off",
@@ -90,9 +74,7 @@
       }
     },
     {
-      "files": [
-        "tests/pages/**/*.ts"
-      ],
+      "files": ["tests/pages/**/*.ts"],
       "rules": {
         /* Page objects should have explicit types */
         "@typescript-eslint/explicit-function-return-types": "error"

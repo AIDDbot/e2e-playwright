@@ -24,7 +24,7 @@ test("another test with different data", async ({ authClient }) => {
   const uniqueUser = {
     email: uniqueEmail("another-test"),
     name: "Different User",
-    password: "secure-pw"
+    password: "secure-pw",
   };
   const response = await authClient.registerUser(uniqueUser);
   expect(response).toHaveStatus(201);
@@ -39,7 +39,7 @@ test("user can register", async ({ registerPage }) => {
   await registerPage.submit({
     email: "testuser@example.com", // Siempre igual
     name: "Test User",
-    password: "password123"
+    password: "password123",
   });
 });
 
@@ -48,7 +48,7 @@ test("another test", async ({ registerPage }) => {
   await registerPage.submit({
     email: "testuser@example.com", // Conflicto
     name: "Another User",
-    password: "password123"
+    password: "password123",
   });
 });
 ```
@@ -56,17 +56,18 @@ test("another test", async ({ registerPage }) => {
 #### Funciones Disponibles
 
 - **`uniqueEmail(label)`** - Genera email único
+
   ```typescript
   import { uniqueEmail } from "../test-data/unique.js";
-  
-  const email = uniqueEmail("auth-flow"); 
+
+  const email = uniqueEmail("auth-flow");
   // Resultado: "auth-flow-550e8400-e29b-41d4-a716-446655440000@example.com"
   ```
 
 - **`users.json`** - Datos compartidos (NO generados)
   ```typescript
   import users from "../test-data/users.json";
-  
+
   const { name, password } = users.ada; // Siempre igual, se usa en cada test
   ```
 
@@ -83,13 +84,13 @@ export class LoginPage extends AuthFormPage<LoginFields> {
   // 1️⃣ getByRole (mejor - accesible, resistente a cambios CSS)
   readonly emailInput: Locator = page.getByRole("textbox", { name: "Email" });
   readonly submitButton: Locator = page.getByRole("button", { name: "Log in" });
-  
+
   // 2️⃣ getByLabel (para campos de formulario)
   readonly passwordInput: Locator = page.getByLabel("Password");
-  
+
   // 3️⃣ getByText (para contenido visible)
   readonly errorMessage: Locator = page.getByText("Invalid credentials");
-  
+
   // 4️⃣ getByTestId (último recurso - requiere cambios en HTML)
   readonly advancedOptions: Locator = page.getByTestId("advanced-options");
 }
@@ -102,10 +103,10 @@ export class LoginPage extends AuthFormPage<LoginFields> {
   // ❌ Selectores CSS directos (frágiles ante cambios de estilo)
   readonly emailInput: Locator = page.locator(".email-field");
   readonly submitButton: Locator = page.locator("#login-btn");
-  
+
   // ❌ XPath complejos (ilegibles y difíciles de mantener)
   readonly password: Locator = page.locator("//input[@type='password']");
-  
+
   // ❌ Selectores basados en atributos data- no estándares
   readonly form: Locator = page.locator("[data-component='loginForm']");
 }
@@ -125,15 +126,15 @@ export class AuthFormPage {
 
   constructor(
     page: Page,
-    private readonly submitButtonLabel: string = "Log in"
+    private readonly submitButtonLabel: string = "Log in",
   ) {
     // Por rol (accesibilidad)
     this.emailInput = page.getByRole("textbox", { name: "Email" });
     this.submitButton = page.getByRole("button", { name: this.submitButtonLabel });
-    
+
     // Por label (semántica)
     this.passwordInput = page.getByLabel("Password");
-    
+
     // Por texto visible
     this.alert = page.getByRole("alert");
   }
@@ -173,10 +174,10 @@ export class HomePage extends AppPage {
   // Búsqueda
   readonly searchInput: Locator = page.getByPlaceholder("Search items");
   readonly searchButton: Locator = page.getByRole("button", { name: "Search" });
-  
+
   // Resultados
   readonly results: Locator = page.locator("[role='list']");
-  
+
   // Navegación (heredada de AppPage)
   // readonly navigation = super.navigation;
 }
@@ -195,7 +196,7 @@ import { test } from "../fixtures/index.js";
 test("only signed-in users can access protected routes", async ({ signedInUser, page }) => {
   // El fixture crea automáticamente un usuario único y lo autentica
   const { name } = signedInUser;
-  
+
   await page.goto("/dashboard");
   await expect(page.getByText(`Welcome, ${name}`)).toBeVisible();
 });
@@ -203,7 +204,7 @@ test("only signed-in users can access protected routes", async ({ signedInUser, 
 // ✅ Para tests de registro, genera tu propio email único
 test("new users can register", async ({ registerPage }) => {
   const email = uniqueEmail("new-registration");
-  
+
   await registerPage.goto();
   await registerPage.submit({ email, name: "New User", password: "secret" });
   await expect(page).toHaveURL("/login?registered=1");
@@ -222,7 +223,7 @@ test("new users can register", async ({ registerPage }) => {
 }
 
 // tests/test-data/unique.ts - Funciones para generar datos únicos
-export const uniqueEmail = (label: string): string => 
+export const uniqueEmail = (label: string): string =>
   `${label}-${randomUUID()}@example.com`;
 
 // tests/test-data/copy.ts - Textos verificables (UI copy)
@@ -262,6 +263,7 @@ const user2 = await register(email);
 ```
 
 **Solución**:
+
 ```typescript
 // ✅ FUNCIONA EN PARALELO
 const email1 = uniqueEmail("test1");

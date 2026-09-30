@@ -75,7 +75,7 @@ git commit -m "test: add new test for @AC-XXX"
 test("user can register", async ({ registerPage }) => {
   await registerPage.submit({
     email: "testuser@example.com", // ❌ Siempre igual
-    name: "Test User"
+    name: "Test User",
   });
 });
 
@@ -83,7 +83,7 @@ test("duplicate email fails", async ({ registerPage }) => {
   // Este test falla porque email ya existe
   await registerPage.submit({
     email: "testuser@example.com", // ❌ Conflicto
-    name: "Another User"
+    name: "Another User",
   });
 });
 
@@ -92,7 +92,7 @@ test("user can register", async ({ registerPage }) => {
   const email = uniqueEmail("register-test");
   await registerPage.submit({
     email, // ✅ Único
-    name: "Test User"
+    name: "Test User",
   });
 });
 ```
@@ -107,13 +107,13 @@ test("user can register", async ({ registerPage }) => {
 // MALO: Selectores CSS frágiles
 export class LoginPage {
   readonly emailInput = page.locator(".email-field"); // ❌
-  readonly button = page.locator("#login-btn");       // ❌
+  readonly button = page.locator("#login-btn"); // ❌
 }
 
 // BIEN: Selectores por rol
 export class LoginPage {
   readonly emailInput = page.getByRole("textbox", { name: "Email" }); // ✅
-  readonly button = page.getByRole("button", { name: "Log in" });     // ✅
+  readonly button = page.getByRole("button", { name: "Log in" }); // ✅
 }
 ```
 
@@ -130,12 +130,9 @@ test("user can login", async ({ loginPage }) => {
 });
 
 // BIEN: Con tag AC explícito
-test("user can login with valid credentials", 
-  { tag: "@AC-AUTH-01" }, 
-  async ({ loginPage }) => {
-    // Mapea a AC específica
-  }
-);
+test("user can login with valid credentials", { tag: "@AC-AUTH-01" }, async ({ loginPage }) => {
+  // Mapea a AC específica
+});
 ```
 
 **Solución**: Agrega `{ tag: "@AC-XXX" }` a cada test
@@ -162,10 +159,10 @@ await expect(page.getByText(result.name)).toBeVisible(); // ✅ Espera automáti
 
 ```typescript
 // MALO: CSS complejos
-page.locator("form .email-field input[type='email']")
+page.locator("form .email-field input[type='email']");
 
 // BIEN: Por rol
-page.getByRole("textbox", { name: "Email" })
+page.getByRole("textbox", { name: "Email" });
 ```
 
 **Solución**: Simplifica con `getByRole()` en lugar de selectores complejos
@@ -200,7 +197,7 @@ test.describe("Authentication", () => {
       // ✅ Assertions explícitas
       await expect(page).toHaveURL("/login?registered=1");
       await expect(loginPage.registrationSuccessMessage).toContainText(
-        copy.auth.registrationSuccess
+        copy.auth.registrationSuccess,
       );
 
       // ✅ Continuamos el flujo
@@ -211,7 +208,7 @@ test.describe("Authentication", () => {
       // ✅ Verificaciones finales
       await expect(page).toHaveURL("/");
       await expect(loginPage.navigation.authenticatedUser(name, "user")).toBeVisible();
-    }
+    },
   );
 
   // ✅ Test con fixture pre-autenticado
@@ -223,10 +220,8 @@ test.describe("Authentication", () => {
 
       // ✅ Ya autenticado, solo verificamos
       await page.goto("/");
-      await expect(
-        appPage.navigation.authenticatedUser(name, "user")
-      ).toBeVisible();
-    }
+      await expect(appPage.navigation.authenticatedUser(name, "user")).toBeVisible();
+    },
   );
 });
 ```

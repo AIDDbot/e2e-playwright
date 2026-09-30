@@ -54,28 +54,32 @@ bun exec eslint tests/ --ext .ts --format=json | grep "locator\|CSS"
 ### Selectores por Rol (Forzadas)
 
 ❌ **Error**: Selectores CSS directos
+
 ```typescript
-page.locator(".email-field")      // CSS class
-page.locator("#login-btn")         // CSS ID
-page.locator("//input[@type]")     // XPath
+page.locator(".email-field"); // CSS class
+page.locator("#login-btn"); // CSS ID
+page.locator("//input[@type]"); // XPath
 ```
 
 ✅ **Correcto**: Selectores por rol
+
 ```typescript
-page.getByRole("textbox", { name: "Email" })
-page.getByRole("button", { name: "Log in" })
-page.getByLabel("Password")
+page.getByRole("textbox", { name: "Email" });
+page.getByRole("button", { name: "Log in" });
+page.getByLabel("Password");
 ```
 
 ### Waits Forzados
 
 ❌ **Advertencia**: Waits hardcodeados
+
 ```typescript
 await page.waitForTimeout(2000);
-await new Promise(r => setTimeout(r, 1000));
+await new Promise((r) => setTimeout(r, 1000));
 ```
 
 ✅ **Correcto**: Waits implícitos
+
 ```typescript
 await expect(page).toHaveURL("/login");
 await expect(button).toBeVisible();
@@ -101,22 +105,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
-      
+
       - name: Install dependencies
         run: bun install
-      
+
       - name: Lint (Oxlint)
         run: bun quality:all
-      
+
       - name: Lint (ESLint - opcional)
         run: bun exec eslint tests/ --ext .ts
-      
+
       - name: Run E2E Tests
         run: bun test:e2e
-      
+
       - name: Upload Report
         if: always()
         uses: actions/upload-artifact@v3
@@ -189,6 +193,7 @@ git add . && git commit -m "feat: add new test"
 ### En Pull Requests:
 
 GitHub Actions ejecutará automáticamente:
+
 - ✅ Oxlint (errores + warnings)
 - ✅ ESLint (selectores y best practices)
 - ✅ Playwright Tests
@@ -203,8 +208,8 @@ Para cambiar severidad o agregar nuevas reglas:
 ```json
 {
   "rules": {
-    "playwright/no-wait-for-timeout": "error",  // Cambiar a "warn"
-    "playwright/no-focused-test": "error"         // Agregar nueva regla
+    "playwright/no-wait-for-timeout": "error", // Cambiar a "warn"
+    "playwright/no-focused-test": "error" // Agregar nueva regla
   }
 }
 ```
@@ -212,6 +217,7 @@ Para cambiar severidad o agregar nuevas reglas:
 ### Ignorar Archivos
 
 Crear `.eslintignore`:
+
 ```
 node_modules/
 reports/
@@ -229,6 +235,7 @@ bun add -d eslint-plugin-playwright
 ### ESLint no detecta mis tests
 
 Verifica que `.eslintrc.json` incluya:
+
 ```json
 {
   "plugins": ["playwright"]
@@ -241,11 +248,11 @@ ESLint solo puede detectar strings literales. Los selectores dinámicos no se va
 
 ```typescript
 // ✅ Detectado por ESLint
-page.locator(".bad-selector")  // Error de ESLint
+page.locator(".bad-selector"); // Error de ESLint
 
 // ❌ NO detectado (string dinámico)
-const sel = ".bad-selector"
-page.locator(sel)  // No error, pero igual es mala práctica
+const sel = ".bad-selector";
+page.locator(sel); // No error, pero igual es mala práctica
 ```
 
 Usa **code review** para estos casos.

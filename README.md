@@ -50,6 +50,7 @@ reports/    # HTML and JSON reports (generated)
 
 > [!IMPORTANT]
 > **Two core practices for reliable, maintainable tests:**
+>
 > 1. **Unique data per test** — Use `uniqueEmail(label)` to avoid data collisions in parallel runs.
 > 2. **Selectors by role** — Use `getByRole()`, `getByLabel()`, `getByText()` for accessibility and resilience.
 
@@ -77,6 +78,7 @@ const { name, password } = users.ada;
 ```
 
 For tests needing a signed-in user:
+
 ```typescript
 // Use the fixture that auto-generates unique data and logs in
 test("protected route", async ({ signedInUser, page }) => {

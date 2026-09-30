@@ -26,12 +26,12 @@ const email = "test@example.com";
 
 ```typescript
 // ✅ BIEN: Por rol
-page.getByRole("button", { name: "Log in" })
-page.getByLabel("Email")
+page.getByRole("button", { name: "Log in" });
+page.getByLabel("Email");
 
 // ❌ MAL: CSS directo
-page.locator(".btn")
-page.locator("#email")
+page.locator(".btn");
+page.locator("#email");
 ```
 
 **Por qué**: Accesible, resiliente a cambios CSS, fácil de leer.
@@ -60,10 +60,10 @@ test("user can register with unique email", async ({ registerPage, page }) => {
 
   // 2. Selecciona por rol (es en la página)
   await registerPage.goto();
-  await registerPage.emailInput.fill(email);      // getByRole definido en page object
+  await registerPage.emailInput.fill(email); // getByRole definido en page object
   await registerPage.nameInput.fill(name);
   await registerPage.passwordInput.fill(password);
-  await registerPage.submitButton.click();         // getByRole
+  await registerPage.submitButton.click(); // getByRole
 
   // 3. Assertions claras
   await expect(page).toHaveURL("/login?registered=1");
@@ -93,12 +93,12 @@ git commit -m "test: add registration test"
 
 ## 🚨 Errores Más Comunes
 
-| Error | Solución |
-|-------|----------|
-| Tests se rompen en paralelo | Usa `uniqueEmail()` en cada test |
+| Error                            | Solución                                           |
+| -------------------------------- | -------------------------------------------------- |
+| Tests se rompen en paralelo      | Usa `uniqueEmail()` en cada test                   |
 | Selectores fallan al cambiar CSS | Usa `getByRole()` en lugar de `.locator(".class")` |
-| No sé qué AC tag usar | Busca en la documentación del proyecto |
-| Test tarda mucho | Evita `waitForTimeout()`, usa `expect()` |
+| No sé qué AC tag usar            | Busca en la documentación del proyecto             |
+| Test tarda mucho                 | Evita `waitForTimeout()`, usa `expect()`           |
 
 ---
 
@@ -139,7 +139,7 @@ export class LoginPage {
 // El fixture signedInUser genera datos únicos + autentica
 test("logged-in users see dashboard", async ({ signedInUser, page }) => {
   const { name } = signedInUser;
-  
+
   await page.goto("/dashboard");
   await expect(page.getByText(`Welcome, ${name}`)).toBeVisible();
 });
@@ -149,14 +149,14 @@ test("logged-in users see dashboard", async ({ signedInUser, page }) => {
 
 ## 🆘 Ayuda Rápida
 
-| Necesitas | Archivo |
-|-----------|---------|
-| Ver ejemplos de código | [TESTING_EXAMPLES.md](./TESTING_EXAMPLES.md) |
-| Checklist antes de commit | [TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md) |
-| Entender selectores | [TESTING_GUIDELINES.md](./TESTING_GUIDELINES.md#2-localizadores-por-rol-accesibilidad-y-resiliencia) |
-| Entender datos únicos | [TESTING_GUIDELINES.md](./TESTING_GUIDELINES.md#1-datos-únicos-por-test-única-verdad) |
-| Preguntas frecuentes | [TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md#-dudas-frecuentes) |
-| Problemas con linting | [VALIDATION_SETUP.md](./VALIDATION_SETUP.md) |
+| Necesitas                 | Archivo                                                                                              |
+| ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Ver ejemplos de código    | [TESTING_EXAMPLES.md](./TESTING_EXAMPLES.md)                                                         |
+| Checklist antes de commit | [TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md)                                                       |
+| Entender selectores       | [TESTING_GUIDELINES.md](./TESTING_GUIDELINES.md#2-localizadores-por-rol-accesibilidad-y-resiliencia) |
+| Entender datos únicos     | [TESTING_GUIDELINES.md](./TESTING_GUIDELINES.md#1-datos-únicos-por-test-única-verdad)                |
+| Preguntas frecuentes      | [TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md#-dudas-frecuentes)                                     |
+| Problemas con linting     | [VALIDATION_SETUP.md](./VALIDATION_SETUP.md)                                                         |
 
 ---
 
