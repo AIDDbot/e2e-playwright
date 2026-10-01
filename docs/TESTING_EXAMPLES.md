@@ -20,7 +20,7 @@ return user;
 
 // ✅ BUENO: Datos únicos por ejecución
 async function goodDataExample() {
-import { uniqueEmail } from "../test-data/unique.js";
+import { uniqueEmail } from "../test-data/unique.ts";
 
 const user = {
 email: uniqueEmail("my-test"), // Único cada vez
@@ -305,4 +305,4 @@ async ({ loginPage }) => {
 );
 
 // Ejecutar solo los tests de un AC:
-// bun test:e2e --grep @AC-AUTH-01
+// npm run test:e2e -- --grep @AC-AUTH-01

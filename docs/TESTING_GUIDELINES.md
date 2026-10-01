@@ -58,7 +58,7 @@ test("another test", async ({ registerPage }) => {
 - **`uniqueEmail(label)`** - Genera email único
 
   ```typescript
-  import { uniqueEmail } from "../test-data/unique.js";
+  import { uniqueEmail } from "../test-data/unique.ts";
 
   const email = uniqueEmail("auth-flow");
   // Resultado: "auth-flow-550e8400-e29b-41d4-a716-446655440000@example.com"
@@ -116,7 +116,7 @@ export class LoginPage extends AuthFormPage<LoginFields> {
 
 ```typescript
 import { type Locator, type Page } from "@playwright/test";
-import { copy } from "../test-data/copy.js";
+import { copy } from "../test-data/copy.ts";
 
 export class AuthFormPage {
   readonly emailInput: Locator;
@@ -190,7 +190,7 @@ export class HomePage extends AppPage {
 ### Usar Fixtures para Datos Compartidos
 
 ```typescript
-import { test } from "../fixtures/index.js";
+import { test } from "../fixtures/index.ts";
 
 // ✅ Usa el fixture signedInUser para tests que requieren autenticación
 test("only signed-in users can access protected routes", async ({ signedInUser, page }) => {
@@ -307,10 +307,10 @@ Para forzar estas prácticas en CI:
 
 ```bash
 # Lint y comprueba violaciones
-bun run quality:all
+npm run quality:all
 
 # Fija automáticamente lo posible
-bun run fix
+npm run fix
 ```
 
 ### Reglas a Implementar (`.eslintrc.json`)

@@ -91,13 +91,13 @@ Garantizar que todos los tests sigan dos prácticas fundamentales:
 # 1. Escribir tests siguiendo TESTING_GUIDELINES.md
 # 2. Revisar con TESTING_CHECKLIST.md
 # 3. Auto-fijar problemas comunes
-bun fix
+npm run fix
 
 # 4. Validar todo
-bun quality:all
+npm run quality:all
 
 # 5. Ejecutar tests
-bun test:e2e
+npm run test:e2e
 
 # 6. Hacer commit
 git add .
@@ -108,10 +108,10 @@ git commit -m "test: add new test for @AC-XXX"
 
 ```bash
 # 1. Instalar ESLint (una sola vez)
-bun add -d eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-playwright
+npm i -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-playwright
 
 # 2. Instalar husky (una sola vez)
-bun add -d husky
+npm i -D husky
 npx husky install
 
 # 3. Crear pre-commit hook
@@ -126,8 +126,8 @@ git commit -m "test: add new test"  # Valida antes de hacer commit
 
 ```bash
 # GitHub ejecutará automáticamente
-bun quality:all  # Oxlint + ESLint
-bun test:e2e     # Tests
+npm run quality:all  # Oxlint + ESLint
+npm run test:e2e     # Tests
 ```
 
 ---
@@ -152,7 +152,7 @@ bun test:e2e     # Tests
 ### Nivel 1: Oxlint (Obligatorio)
 
 ```bash
-bun quality:all
+npm run quality:all
 ```
 
 Detecta:
@@ -164,7 +164,7 @@ Detecta:
 ### Nivel 2: ESLint (Opcional pero Recomendado)
 
 ```bash
-bun exec eslint tests/ --ext .ts
+npx eslint tests/ --ext .ts
 ```
 
 Detecta:
@@ -246,17 +246,17 @@ Detecta:
 
 ```bash
 # Escribir tests
-bun test:e2e --grep @AC-XXX              # Ejecutar un AC específico
-bun test:e2e:report                       # Ver reporte HTML
+npm run test:e2e -- --grep @AC-XXX              # Ejecutar un AC específico
+npm run test:e2e:report                       # Ver reporte HTML
 
 # Validar tests
-bun fix                                   # Auto-fijar problemas
-bun quality:all                           # Oxlint + Complexity
-bun lint:eslint                           # ESLint (si instalado)
+npm run fix                                   # Auto-fijar problemas
+npm run quality:all                           # Oxlint + Complexity
+npm run lint:eslint                           # ESLint (si instalado)
 bash scripts/validate-tests.sh            # Script de validación
 
 # Antes de commit
-bun quality:all && bun test:e2e           # Validar + ejecutar
+npm run quality:all && npm run test:e2e           # Validar + ejecutar
 git add . && git commit -m "test: ..."    # Commit si todo pasa
 ```
 
@@ -306,7 +306,7 @@ R: [VALIDATION_SETUP.md](./VALIDATION_SETUP.md) → GitHub Actions workflow.
 | **Ejemplos de código**    | Documentación | [TESTING_EXAMPLES.md](./TESTING_EXAMPLES.md)     |
 | **Checklist**             | Documentación | [TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md)   |
 | **Validación manual**     | Script bash   | `scripts/validate-tests.sh`                      |
-| **Validación automática** | Oxlint        | `bun quality:all`                                |
+| **Validación automática** | Oxlint        | `npm run quality:all`                            |
 | **Validación con ESLint** | Configuración | `.eslintrc.json`                                 |
 | **Pre-commit hooks**      | Guía          | [VALIDATION_SETUP.md](./VALIDATION_SETUP.md)     |
 

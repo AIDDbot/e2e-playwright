@@ -40,7 +40,7 @@ Usa este checklist antes de hacer commit de tus tests.
   - [ ] No hay `// eslint-disable` sin justificación
   - [ ] No hay `console.log()` en tests
   - [ ] Los tipos están explícitos
-  - [ ] El código pasa `bun quality:all`
+  - [ ] El código pasa `npm run quality:all`
 
 ---
 
@@ -48,16 +48,16 @@ Usa este checklist antes de hacer commit de tus tests.
 
 ```bash
 # 1. Fijar problemas automáticamente
-bun fix
+npm run fix
 
 # 2. Validar todo
-bun quality:all
+npm run quality:all
 
 # 3. Correr solo tu test
-bun test:e2e --grep @AC-XXX
+npm run test:e2e -- --grep @AC-XXX
 
 # 4. Correr todo si está ok
-bun test:e2e
+npm run test:e2e
 
 # 5. Commit si todo pasa
 git add .
@@ -172,10 +172,10 @@ page.getByRole("textbox", { name: "Email" });
 ## ✅ Ejemplo Completo: Test Bien Hecho
 
 ```typescript
-import { test, expect } from "../../fixtures/index.js";
-import { uniqueEmail } from "../../test-data/unique.js";
+import { test, expect } from "../../fixtures/index.ts";
+import { uniqueEmail } from "../../test-data/unique.ts";
 import users from "../../test-data/users.json";
-import { copy } from "../../test-data/copy.js";
+import { copy } from "../../test-data/copy.ts";
 
 test.describe("Authentication", () => {
   // ✅ Tag AC explícito
@@ -248,7 +248,7 @@ R: Usa `getByTestId()` como fallback y contacta al team de frontend.
 R: Evítalo. Busca ARIA roles, labels o test IDs primero.
 
 **P: ¿Cómo corro solo un AC?**
-R: `bun test:e2e --grep @AC-XXX`
+R: `npm run test:e2e -- --grep @AC-XXX`
 
 **P: ¿Qué hago si un test es flaky?**
 R: Revisa timeouts, datos únicos y assertions explícitas.
@@ -259,25 +259,25 @@ R: Revisa timeouts, datos únicos y assertions explícitas.
 
 ```bash
 # Fijar automáticamente lo posible
-bun fix
+npm run fix
 
 # Validar todo
-bun quality:all
+npm run quality:all
 
 # Correr solo tests de autenticación
-bun test:e2e tests/e2e/auth/
+npm run test:e2e -- tests/e2e/auth/
 
 # Correr solo un AC
-bun test:e2e --grep @AC-AUTH-01
+npm run test:e2e -- --grep @AC-AUTH-01
 
 # Ver reporte HTML
-bun test:e2e:report
+npm run test:e2e:report
 
 # Lint solo tu código
-bun lint tests/
+npm run lint -- tests/
 
 # Fijar lint issues
-bun lint:fix
+npm run lint:fix
 ```
 
 ---

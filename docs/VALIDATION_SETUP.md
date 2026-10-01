@@ -8,10 +8,10 @@ El proyecto usa **oxlint** por defecto (más rápido), pero puedes añadir **ESL
 
 ```bash
 # Instalar ESLint y plugins
-bun add -d eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-playwright @testing-library/eslint-plugin
+npm i -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-playwright @testing-library/eslint-plugin
 
 # Verificar configuración
-bun exec eslint --version
+npx eslint --version
 ```
 
 ## Configuración Actual
@@ -22,16 +22,16 @@ Valida errores generales y complejidad:
 
 ```bash
 # Lint básico (errores solo)
-bun lint
+npm run lint
 
 # Lint con warnings
-bun quality:warnings
+npm run quality:warnings
 
 # Lint con límites de complejidad
-bun quality:complexity
+npm run quality:complexity
 
 # Lint + format + complexity
-bun quality:all
+npm run quality:all
 ```
 
 ### 2. **ESLint** (Opcional, para testing específico)
@@ -40,13 +40,13 @@ Valida reglas de testing y selectores:
 
 ```bash
 # Ejecutar ESLint solo en tests
-bun exec eslint tests/ --ext .ts
+npx eslint tests/ --ext .ts
 
 # Fijar automáticamente lo posible
-bun exec eslint tests/ --ext .ts --fix
+npx eslint tests/ --ext .ts --fix
 
 # Ver solo errores de selectores
-bun exec eslint tests/ --ext .ts --format=json | grep "locator\|CSS"
+npx eslint tests/ --ext .ts --format=json | grep "locator\|CSS"
 ```
 
 ## Reglas Configuradas
@@ -106,20 +106,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "26.10"
+          cache: npm
 
       - name: Install dependencies
-        run: bun install
+        run: npm install
 
       - name: Lint (Oxlint)
-        run: bun quality:all
+        run: npm run quality:all
 
       - name: Lint (ESLint - opcional)
-        run: bun exec eslint tests/ --ext .ts
+        run: npx eslint tests/ --ext .ts
 
       - name: Run E2E Tests
-        run: bun test:e2e
+        run: npm run test:e2e
 
       - name: Upload Report
         if: always()
@@ -140,8 +143,8 @@ jobs:
     "lint:eslint": "eslint tests/ --ext .ts",
     "lint:eslint:fix": "eslint tests/ --ext .ts --fix",
     "format": "oxfmt --write",
-    "fix": "bun run lint:fix && bun run lint:eslint:fix && bun run format",
-    "quality:all": "bun run quality:warnings && bun run quality:complexity && bun run lint:eslint",
+    "fix": "npm run lint:fix && npm run lint:eslint:fix && npm run format",
+    "quality:all": "npm run quality:warnings && npm run quality:complexity && npm run lint:eslint",
     "quality:warnings": "oxlint --deny-warnings --format=agent",
     "quality:complexity": "oxlint -c .oxlintrc.complexity.json --format=agent --quiet"
   }
@@ -154,16 +157,16 @@ Usa **husky** para validar antes de commit:
 
 ```bash
 # Instalar husky
-bun add -d husky
+npm i -D husky
 npx husky install
 
 # Crear hook pre-commit
 cat > .husky/pre-commit << 'EOF'
 #!/bin/sh
 echo "🔍 Linting tests..."
-bun run lint:eslint tests/
+npm run lint:eslint -- tests/
 if [ $? -ne 0 ]; then
-  echo "❌ ESLint found issues. Run 'bun run lint:eslint:fix' to auto-fix."
+  echo "❌ ESLint found issues. Run 'npm run lint:eslint:fix' to auto-fix."
   exit 1
 fi
 echo "✅ Lint passed"
@@ -178,13 +181,13 @@ chmod +x .husky/pre-commit
 
 ```bash
 # 1. Fijar automáticamente
-bun fix
+npm run fix
 
 # 2. Validar todo
-bun quality:all
+npm run quality:all
 
 # 3. Correr tests
-bun test:e2e
+npm run test:e2e
 
 # 4. Commit si todo pasa
 git add . && git commit -m "feat: add new test"
@@ -229,7 +232,7 @@ dist/
 ### Error: "Cannot find module 'eslint-plugin-playwright'"
 
 ```bash
-bun add -d eslint-plugin-playwright
+npm i -D eslint-plugin-playwright
 ```
 
 ### ESLint no detecta mis tests

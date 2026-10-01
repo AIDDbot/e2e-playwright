@@ -5,31 +5,24 @@ End-to-end Playwright suite for an api and web application.
 ## Quick start
 
 > [!IMPORTANT]
-> This project uses `bun` as a package manager and runner.
+> This project requires Node.js 26.10+ and uses npm.
 
-1. Install bun: the fastest tooling manager for Node.js projects.
+1. Install Node.js 26.10+ from https://nodejs.org/ (npm is included).
 
 ```bash
-# Install Bun
-# (Windows PowerShell)
-powershell -c "irm bun.com/install.ps1 | iex"
-# (macOS/Linux)
-curl -fsSL https://bun.com/install | bash -s
-# Verify installation
-bun --version
-# Upgrade Bun to the latest stable version
-bun upgrade --stable
+node --version
+npm --version
 ```
 
 2. Install dependencies and run the tests
 
 ```bash
-bun install
-bun lint            # lints and type-checks (oxlint with Playwright rules and tsgolint), errors only
-bun fix             # applies lint fixes and formats the code (oxfmt)
-bun quality:all     # fails on any warning or on complexity limits (.oxlintrc.complexity.json)
-bun test:e2e        # runs the tests (dot output without a terminal, e.g. agents and CI)
-bun test:e2e:report # opens the last HTML report
+npm install
+npm run lint            # lints and type-checks (oxlint with Playwright rules and tsgolint), errors only
+npm run fix             # applies lint fixes and formats the code (oxfmt)
+npm run quality:all     # fails on any warning or on complexity limits (.oxlintrc.complexity.json)
+npm run test:e2e        # runs the tests (dot output without a terminal, e.g. agents and CI)
+npm run test:e2e:report # opens the last HTML report
 ```
 
 ## Project structure
@@ -67,7 +60,7 @@ Prefer getting elements by role, label, or test ID rather than by CSS selectors 
 Each test must generate or use unique data to avoid collisions in parallel runs:
 
 ```typescript
-import { uniqueEmail } from "../test-data/unique.js";
+import { uniqueEmail } from "../test-data/unique.ts";
 import users from "../test-data/users.json";
 
 // ✅ Unique per test
@@ -99,7 +92,7 @@ Organize tests by feature or user journey within the `tests/e2e` directory. Use 
 
 ### Naming conventions
 
-Use clear and descriptive names for test files, test cases, and page objects. This helps other developers quickly understand the purpose and scope of each test. For example, a test file for user login might be named `login.spec.ts`, and its page object `login.page.ts` exports `LoginPage`, which extends `AppPage`. Asserted texts (messages, headings, titles) live in `tests/test-data/copy.ts`; accessible names of controls stay in the page objects. Tag each test with the acceptance criterion it covers, `test("title", { tag: "@AC-AUT-01" }, ...)`, and run one criterion or a whole spec with `bun test:e2e --grep @AC-AUT`.
+Use clear and descriptive names for test files, test cases, and page objects. This helps other developers quickly understand the purpose and scope of each test. For example, a test file for user login might be named `login.spec.ts`, and its page object `login.page.ts` exports `LoginPage`, which extends `AppPage`. Asserted texts (messages, headings, titles) live in `tests/test-data/copy.ts`; accessible names of controls stay in the page objects. Tag each test with the acceptance criterion it covers, `test("title", { tag: "@AC-AUT-01" }, ...)`, and run one criterion or a whole spec with `npm run test:e2e -- --grep @AC-AUT`.
 
 ## Target applications
 
@@ -109,7 +102,7 @@ Use clear and descriptive names for test files, test cases, and page objects. Th
 Backend with Express: https://github.com/AIDDbot/back-express
 Frontend with Standard web: https://github.com/AIDDbot/front-standard
 
-`bun test:e2e` uses whatever is already listening on the API and web ports. It
+`npm run test:e2e` uses whatever is already listening on the API and web ports. It
 starts a sibling project only when that port is silent and the folder is there
 (`../back` and `../front` in the scaffold layout below). If a server is already
 open somewhere else, its folder is not required. The app title then comes from
@@ -139,7 +132,7 @@ ms; measured cold start is ~364 ms for back and ~363 ms for front on Windows).
 ## Startup errors
 
 Before starting the servers, the suite checks settings, target folders and
-`package.json` files (a `start` script, installed dependencies), `bun`, the
+`package.json` files (a `start` script, installed dependencies), `npm`, the
 Chromium browser, free ports and write access. Each server is then started
 through `tests/support/start-target.ts`, which explains a crash or a timeout (for
 example, nothing listening on `PORT`, or another app answering the health URL).
@@ -150,7 +143,7 @@ the output for `E2E startup failed:` and apply the fix:
 ```text
 E2E startup failed: 1 problem(s) found before starting the servers
 
-1. [port] Port 4000 (front) is already in use by PID 28148 (bun.exe).
+1. [port] Port 4000 (front) is already in use by PID 28148 (node.exe).
    Fix: Stop that process ("taskkill /PID 28148 /F"), or set E2E_FRONT_PORT to a free port. A front you want to keep must already answer http://localhost:4000.
 ```
 

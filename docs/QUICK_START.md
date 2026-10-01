@@ -9,7 +9,7 @@ Comienza aquí si eres nuevo en el proyecto.
 ### 1. Datos Únicos por Test ✅
 
 ```typescript
-import { uniqueEmail } from "../test-data/unique.js";
+import { uniqueEmail } from "../test-data/unique.ts";
 
 // ✅ BIEN: Datos únicos
 const email = uniqueEmail("my-test");
@@ -49,8 +49,8 @@ page.locator("#email");
 ## 👨‍💻 Tu Primer Test (3 minutos)
 
 ```typescript
-import { test, expect } from "../../fixtures/index.js";
-import { uniqueEmail } from "../../test-data/unique.js";
+import { test, expect } from "../../fixtures/index.ts";
+import { uniqueEmail } from "../../test-data/unique.ts";
 import users from "../../test-data/users.json";
 
 test("user can register with unique email", async ({ registerPage, page }) => {
@@ -76,13 +76,13 @@ test("user can register with unique email", async ({ registerPage, page }) => {
 
 ```bash
 # 1. Fijar problemas
-bun fix
+npm run fix
 
 # 2. Validar
-bun quality:all
+npm run quality:all
 
 # 3. Ejecutar tests
-bun test:e2e
+npm run test:e2e
 
 # 4. Commit si todo OK
 git add .
@@ -166,7 +166,7 @@ test("logged-in users see dashboard", async ({ signedInUser, page }) => {
 - [ ] Revisa un test existente en `tests/e2e/auth/`
 - [ ] Escribe tu primer test
 - [ ] Usa [TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md) antes de hacer commit
-- [ ] Corre: `bun quality:all && bun test:e2e`
+- [ ] Corre: `npm run quality:all && npm run test:e2e`
 
 ---
 
