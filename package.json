@@ -1,6 +1,6 @@
 {
   "name": "e2e-playwright",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "End-to-end Playwright suite for api and web applications",
   "keywords": [
     "archetype",

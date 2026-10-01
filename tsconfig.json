@@ -1,25 +1,23 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
-  // Type-check only: Playwright runs the TypeScript sources directly
-  "include": ["playwright.config.ts", "tests/**/*.ts"],
   "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ],
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
     "erasableSyntaxOnly": true,
-
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
-    "resolveJsonModule": true,
-    "target": "esnext",
-    "lib": ["esnext", "dom"],
-    "types": ["node"],
-
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-
     // Style Options
     "noImplicitReturns": true,
     "noImplicitOverride": true,
@@ -27,13 +25,17 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": true,
-
     // Recommended Options
     "strict": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "playwright.config.ts",
+    "tests/**/*.ts"
+  ]
 }
