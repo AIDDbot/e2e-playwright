@@ -26,10 +26,10 @@
     "lint:fix": "oxlint --fix --format=agent --quiet",
     "format": "oxfmt --write",
     "format:check": "oxfmt --check",
-    "fix": "bun run lint:fix && bun run format",
+    "fix": "node --run lint:fix && node --run format",
     "quality:warnings": "oxlint --deny-warnings --format=agent",
     "quality:complexity": "oxlint -c .oxlintrc.complexity.json --format=agent --quiet",
-    "quality:all": "bun run quality:warnings && bun run quality:complexity"
+    "quality:all": "node --run quality:warnings && node --run quality:complexity"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
@@ -43,8 +43,7 @@
     "codename": "oktoberfest"
   },
   "engines": {
-    "bun": ">=1.4.0",
-    "node": ">=26.0.0"
+    "node": ">=26.10.0"
   },
-  "packageManager": "bun@1.4.0"
+  "packageManager": "npm@12.0.0"
 }

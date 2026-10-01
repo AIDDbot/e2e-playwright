@@ -4,6 +4,9 @@
   "include": ["playwright.config.ts", "tests/**/*.ts"],
   "compilerOptions": {
     "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module

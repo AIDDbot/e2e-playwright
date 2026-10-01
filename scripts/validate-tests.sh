@@ -16,33 +16,33 @@ FAILED=0
 
 # Step 1: Lint with oxlint
 echo -e "${YELLOW}[1/5] Running Oxlint...${NC}"
-if bun run lint; then
+if npm run lint; then
   echo -e "${GREEN}✓ Oxlint passed${NC}\n"
 else
   echo -e "${RED}✗ Oxlint failed${NC}"
   FAILED=1
-  echo -e "${YELLOW}Tip: Run 'bun run lint:fix' to auto-fix${NC}\n"
+  echo -e "${YELLOW}Tip: Run 'npm run lint:fix' to auto-fix${NC}\n"
 fi
 
 # Step 2: Check code complexity
 echo -e "${YELLOW}[2/5] Checking complexity...${NC}"
-if bun run quality:complexity > /dev/null 2>&1; then
+if npm run quality:complexity > /dev/null 2>&1; then
   echo -e "${GREEN}✓ Complexity check passed${NC}\n"
 else
   echo -e "${RED}✗ Complexity exceeds limits${NC}"
   FAILED=1
-  bun run quality:complexity
+  npm run quality:complexity
   echo ""
 fi
 
 # Step 3: Run formatting check
 echo -e "${YELLOW}[3/5] Checking code format...${NC}"
-if bun run format:check > /dev/null 2>&1; then
+if npm run format:check > /dev/null 2>&1; then
   echo -e "${GREEN}✓ Format check passed${NC}\n"
 else
   echo -e "${RED}✗ Code not formatted${NC}"
   FAILED=1
-  echo -e "${YELLOW}Tip: Run 'bun run fix' to auto-format${NC}\n"
+  echo -e "${YELLOW}Tip: Run 'npm run fix' to auto-format${NC}\n"
 fi
 
 # Step 4: Check for common testing issues
@@ -102,7 +102,7 @@ if [ $FAILED -eq 0 ]; then
   exit 0
 else
   echo -e "${RED}✗ Some validation checks failed${NC}"
-  echo -e "${YELLOW}Run 'bun run fix' to auto-fix common issues${NC}"
+  echo -e "${YELLOW}Run 'npm run fix' to auto-fix common issues${NC}"
   echo -e "${BLUE}========================================${NC}"
   exit 1
 fi
