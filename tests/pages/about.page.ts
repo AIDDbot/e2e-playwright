@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
-import { copy } from "../test-data/copy.js";
-import { AppPage } from "./app.page.js";
+import { copy } from "../test-data/copy.ts";
+import { AppPage } from "./app.page.ts";
 
 export class AboutPage extends AppPage {
   readonly healthSummary: Locator;

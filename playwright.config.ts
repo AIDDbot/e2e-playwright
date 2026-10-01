@@ -2,10 +2,10 @@ import { defineConfig, devices } from "@playwright/test";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { readAppInfo } from "./tests/support/app-info.js";
-import { runPreflight } from "./tests/support/preflight.js";
-import { isTargetName, readSettings, type TargetSettings } from "./tests/support/settings.js";
-import { formatStartupProblems } from "./tests/support/startup-problems.js";
+import { readAppInfo } from "./tests/support/app-info.ts";
+import { runPreflight } from "./tests/support/preflight.ts";
+import { isTargetName, readSettings, type TargetSettings } from "./tests/support/settings.ts";
+import { formatStartupProblems } from "./tests/support/startup-problems.ts";
 
 const CI_RETRIES = 2;
 const LOCAL_RETRIES = 0;
@@ -57,9 +57,9 @@ if (isMainProcess) {
 
 const launch = new Set((process.env["E2E_LAUNCH"] ?? "").split(",").filter(isTargetName));
 
-// Runs "bun start" through the launcher, which explains crashes and timeouts
+// Runs "npm start" through the launcher, which explains crashes and timeouts
 const webServerFor = (target: TargetSettings, env: Record<string, string>) => ({
-  command: `bun "${launcherPath}" ${target.name} ${target.readyUrl} ${serverTimeoutMs} ${target.portVariable} ${target.directoryVariable}`,
+  command: `node "${launcherPath}" ${target.name} ${target.readyUrl} ${serverTimeoutMs} ${target.portVariable} ${target.directoryVariable}`,
   cwd: target.directory,
   env: { ...env, PORT: String(target.port) },
   name: target.name,

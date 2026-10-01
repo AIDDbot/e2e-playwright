@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { TargetSettings } from "./settings.js";
+import type { TargetSettings } from "./settings.ts";
 
 const LIVE_TITLE_TIMEOUT_MS = 2_000;
 

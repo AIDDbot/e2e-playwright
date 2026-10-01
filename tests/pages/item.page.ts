@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { AppPage } from "./app.page.js";
+import { AppPage } from "./app.page.ts";
 
 export class ItemPage extends AppPage {
   readonly homeLink: Locator;

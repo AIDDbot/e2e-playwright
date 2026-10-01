@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { AppPage } from "./app.page.js";
+import { AppPage } from "./app.page.ts";
 
 export type LoginFields = Readonly<{ email: string; password: string }>;
 
@@ -10,12 +10,11 @@ export abstract class AuthFormPage<Fields extends LoginFields> extends AppPage {
   readonly submitButton: Locator;
   readonly alert: Locator;
 
-  constructor(
-    page: Page,
-    private readonly path: string,
-    submitName: string,
-  ) {
+  private readonly path: string;
+
+  constructor(page: Page, path: string, submitName: string) {
     super(page);
+    this.path = path;
     this.emailInput = page.getByRole("textbox", { name: "Email" });
     this.passwordInput = page.getByLabel("Password");
     this.submitButton = page.getByRole("button", { name: submitName });

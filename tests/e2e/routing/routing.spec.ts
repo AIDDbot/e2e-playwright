@@ -1,8 +1,8 @@
 import { type Page, type Request } from "@playwright/test";
-import { expect, test } from "../../fixtures/index.js";
-import { type AppPage } from "../../pages/app.page.js";
-import { appTitle } from "../../support/run-context.js";
-import { copy } from "../../test-data/copy.js";
+import { expect, test } from "../../fixtures/index.ts";
+import { type AppPage } from "../../pages/app.page.ts";
+import { appTitle } from "../../support/run-context.ts";
+import { copy } from "../../test-data/copy.ts";
 
 // A full reload wipes window state, so a surviving marker proves client-side navigation
 const markDocument = async (page: Page): Promise<void> => {

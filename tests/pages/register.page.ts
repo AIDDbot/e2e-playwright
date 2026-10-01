@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { AuthFormPage, type LoginFields } from "./auth-form.page.js";
+import { AuthFormPage, type LoginFields } from "./auth-form.page.ts";
 
 export type RegisterFields = LoginFields & Readonly<{ name: string }>;
 

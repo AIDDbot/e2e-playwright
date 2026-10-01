@@ -1,5 +1,5 @@
-import { expect, test } from "../../fixtures/index.js";
-import { appTitle } from "../../support/run-context.js";
+import { expect, test } from "../../fixtures/index.ts";
+import { appTitle } from "../../support/run-context.ts";
 
 const PAGES = ["/", "/about", "/items/1", "/no/such/page"];
 

@@ -1,8 +1,8 @@
-import { type AuthSession, type AuthUser } from "../clients/auth.client.js";
-import { expect, test } from "../fixtures/index.js";
-import { copy } from "../test-data/copy.js";
+import { type AuthSession, type AuthUser } from "../clients/auth.client.ts";
+import { expect, test } from "../fixtures/index.ts";
+import { copy } from "../test-data/copy.ts";
 import users from "../test-data/users.json" with { type: "json" };
-import { uniqueEmail } from "../test-data/unique.js";
+import { uniqueEmail } from "../test-data/unique.ts";
 
 test.describe("Auth API — register", () => {
   test(

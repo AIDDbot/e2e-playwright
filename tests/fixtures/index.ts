@@ -1,15 +1,15 @@
 import { test as base } from "@playwright/test";
-import { AuthClient, type AuthSession, type NewUser } from "../clients/auth.client.js";
-import { AboutPage } from "../pages/about.page.js";
-import { AppPage } from "../pages/app.page.js";
-import { HomePage } from "../pages/home.page.js";
-import { ItemPage } from "../pages/item.page.js";
-import { LoginPage } from "../pages/login.page.js";
-import { NotFoundPage } from "../pages/not-found.page.js";
-import { RegisterPage } from "../pages/register.page.js";
-import { seedBrowserSession } from "../support/browser-session.js";
-import { backUrl } from "../support/run-context.js";
-import { uniqueEmail } from "../test-data/unique.js";
+import { AuthClient, type AuthSession, type NewUser } from "../clients/auth.client.ts";
+import { AboutPage } from "../pages/about.page.ts";
+import { AppPage } from "../pages/app.page.ts";
+import { HomePage } from "../pages/home.page.ts";
+import { ItemPage } from "../pages/item.page.ts";
+import { LoginPage } from "../pages/login.page.ts";
+import { NotFoundPage } from "../pages/not-found.page.ts";
+import { RegisterPage } from "../pages/register.page.ts";
+import { seedBrowserSession } from "../support/browser-session.ts";
+import { backUrl } from "../support/run-context.ts";
+import { uniqueEmail } from "../test-data/unique.ts";
 import users from "../test-data/users.json" with { type: "json" };
 
 interface PageFixtures {
@@ -71,4 +71,4 @@ export const test = base.extend<PageFixtures & ClientFixtures & SessionFixtures>
   },
 });
 
-export { expect } from "./matchers.js";
+export { expect } from "./matchers.ts";

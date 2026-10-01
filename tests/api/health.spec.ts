@@ -1,6 +1,6 @@
 import { type APIRequestContext } from "@playwright/test";
-import { expect, test } from "../fixtures/index.js";
-import { frontUrl } from "../support/run-context.js";
+import { expect, test } from "../fixtures/index.ts";
+import { frontUrl } from "../support/run-context.ts";
 
 const HEALTH_PATH = "/api/health";
 

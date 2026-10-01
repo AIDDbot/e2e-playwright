@@ -1,8 +1,8 @@
 import { type Page } from "@playwright/test";
-import { expect, test } from "../../fixtures/index.js";
-import { copy } from "../../test-data/copy.js";
+import { expect, test } from "../../fixtures/index.ts";
+import { copy } from "../../test-data/copy.ts";
 import users from "../../test-data/users.json" with { type: "json" };
-import { uniqueEmail } from "../../test-data/unique.js";
+import { uniqueEmail } from "../../test-data/unique.ts";
 
 const countPostRequests = (page: Page, path: string): (() => number) => {
   let count = 0;

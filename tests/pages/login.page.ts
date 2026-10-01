@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
-import { copy } from "../test-data/copy.js";
-import { AuthFormPage, type LoginFields } from "./auth-form.page.js";
+import { copy } from "../test-data/copy.ts";
+import { AuthFormPage, type LoginFields } from "./auth-form.page.ts";
 
 export class LoginPage extends AuthFormPage<LoginFields> {
   readonly registrationSuccessMessage: Locator;

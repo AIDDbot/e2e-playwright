@@ -1,5 +1,5 @@
 import { type APIRequestContext, type APIResponse } from "@playwright/test";
-import { expect } from "../fixtures/matchers.js";
+import { expect } from "../fixtures/matchers.ts";
 
 const REGISTER_PATH = "/api/auth/register";
 const LOGIN_PATH = "/api/auth/login";
@@ -25,7 +25,11 @@ type RequestBody = Readonly<Record<string, unknown>>;
 
 /** Auth API calls against the back; the request context carries the back base URL. */
 export class AuthClient {
-  constructor(private readonly request: APIRequestContext) {}
+  private readonly request: APIRequestContext;
+
+  constructor(request: APIRequestContext) {
+    this.request = request;
+  }
 
   register(body: RequestBody): Promise<APIResponse> {
     return this.request.post(REGISTER_PATH, { data: body });

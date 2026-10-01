@@ -4,9 +4,9 @@ import { accessSync, constants, existsSync, mkdtempSync, readFileSync, rmSync } 
 import { connect, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { probeUrl } from "./http-probe.js";
-import type { TargetName, TargetSettings } from "./settings.js";
-import type { StartupProblem } from "./startup-problems.js";
+import { probeUrl } from "./http-probe.ts";
+import type { TargetName, TargetSettings } from "./settings.ts";
+import type { StartupProblem } from "./startup-problems.ts";
 
 export interface PreflightSettings {
   targets: TargetSettings[];
@@ -48,7 +48,7 @@ const checkTarget = (target: TargetSettings): StartupProblem[] => {
       {
         area: target.name,
         cause: `Nothing answered ${target.readyUrl}, and ${target.directory} was not found.`,
-        fix: `Start the ${target.name} on that URL, or set ${target.directoryVariable} (shell or .env) so this suite can launch it.`,
+        fix: `Run "npm start" in the ${target.name} project on that URL, or set ${target.directoryVariable} (shell or .env) so this suite can launch it.`,
       },
     ];
   }
@@ -61,7 +61,7 @@ const checkTarget = (target: TargetSettings): StartupProblem[] => {
   if (typeof scripts["start"] !== "string") {
     problems.push({
       area: target.name,
-      cause: `${target.directory}/package.json has no "start" script; the suite runs "bun start" there.`,
+      cause: `${target.directory}/package.json has no "start" script; the suite runs "npm start" there.`,
       fix: `Add a "start" script that serves the ${target.name} on the PORT environment variable.`,
     });
   }
@@ -73,7 +73,7 @@ const checkTarget = (target: TargetSettings): StartupProblem[] => {
     problems.push({
       area: target.name,
       cause: `Dependencies of the ${target.name} are not installed (no node_modules in ${target.directory}).`,
-      fix: `Run "bun install" in ${target.directory}.`,
+      fix: `Run "npm install" in ${target.directory}.`,
     });
   }
   if (target.name === "front" && !manifest["displayName"] && !manifest["name"]) {
@@ -204,7 +204,7 @@ const checkBrowser = (): StartupProblem[] => {
     {
       area: "tooling",
       cause: `The Playwright Chromium browser is not installed (expected ${executable}).`,
-      fix: 'Run "bunx playwright install chromium" in this directory.',
+      fix: 'Run "npx playwright install chromium" in this directory.',
     },
   ];
 };
@@ -248,7 +248,10 @@ export const runPreflight = async (settings: PreflightSettings): Promise<Preflig
   const toolingProblems = [
     ...(launch.length === 0
       ? []
-      : checkCommand("bun", 'Install bun (see README "Quick start") and reopen the terminal.')),
+      : checkCommand(
+          "npm",
+          'Install Node.js 26.10+ with npm (see README "Quick start") and reopen the terminal.',
+        )),
     ...checkBrowser(),
   ];
   return {

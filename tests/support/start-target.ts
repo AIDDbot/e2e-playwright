@@ -1,10 +1,10 @@
 import { spawn, spawnSync } from "node:child_process";
-import { probeUrl } from "./http-probe.js";
-import { formatStartupProblems, type StartupProblem } from "./startup-problems.js";
+import { probeUrl } from "./http-probe.ts";
+import { formatStartupProblems, type StartupProblem } from "./startup-problems.ts";
 
-// Runs "bun start" for one target (Playwright webServer command) and, when it cannot
+// Runs "npm start" for one target (Playwright webServer command) and, when it cannot
 // become ready, prints what went wrong and how to fix it instead of a generic timeout.
-// Usage: bun tests/support/start-target.ts <name> <readyUrl> <timeoutMs> <portVariable> <directoryVariable>
+// Usage: node tests/support/start-target.ts <name> <readyUrl> <timeoutMs> <portVariable> <directoryVariable>
 
 const POLL_INTERVAL_MS = 250;
 const PROBE_TIMEOUT_MS = 1_000;
@@ -27,7 +27,14 @@ let ready = false;
 // Held back until ready, so a failure report shows it once, next to the diagnosis
 const pendingStderr: Buffer[] = [];
 
-const child = spawn("bun", ["start"], { stdio: ["ignore", "pipe", "pipe"] });
+const child = spawn(
+  process.platform === "win32" ? "npm.cmd start" : "npm",
+  process.platform === "win32" ? [] : ["start"],
+  {
+    shell: process.platform === "win32",
+    stdio: ["ignore", "pipe", "pipe"],
+  },
+);
 child.stdout.on("data", recordOutput);
 child.stderr.on("data", (chunk: Buffer) => {
   recordOutput(chunk);
@@ -60,7 +67,7 @@ const diagnoseCrash = (code: number | null): Pick<StartupProblem, "area" | "fix"
   if (code === 0) {
     return {
       area: name,
-      fix: `"bun start" must keep a server running on PORT, but it finished on its own. Check that ${directoryVariable} points to the ${name} project.`,
+      fix: `"npm start" must keep a server running on PORT, but it finished on its own. Check that ${directoryVariable} points to the ${name} project.`,
     };
   }
   if (/EADDRINUSE|address already in use|port \d+ is (already )?in use/i.test(output)) {
@@ -76,7 +83,7 @@ const diagnoseCrash = (code: number | null): Pick<StartupProblem, "area" | "fix"
     };
   }
   if (/Cannot find (package|module)|MODULE_NOT_FOUND/i.test(output)) {
-    return { area: name, fix: `Run "bun install" in ${directory}.` };
+    return { area: name, fix: `Run "npm install" in ${directory}.` };
   }
   if (/Script not found|missing script/i.test(output)) {
     return { area: name, fix: `Add a "start" script to ${directory}/package.json.` };
@@ -90,8 +97,8 @@ const diagnoseCrash = (code: number | null): Pick<StartupProblem, "area" | "fix"
 child.once("error", (error) => {
   report(`the ${name} could not be launched`, {
     area: "tooling",
-    cause: `Running "bun start" in ${directory} failed: ${error.message}`,
-    fix: 'Install bun (see README "Quick start") and make sure it is on PATH.',
+    cause: `Running "npm start" in ${directory} failed: ${error.message}`,
+    fix: 'Install Node.js 26.10+ with npm (see README "Quick start") and make sure it is on PATH.',
   });
   process.exit(1);
 });
@@ -105,7 +112,7 @@ child.once("exit", (code, signal) => {
   } else {
     report(`the ${name} did not start`, {
       ...diagnoseCrash(code),
-      cause: `"bun start" in ${directory} exited with ${status} before ${readyUrl} answered.`,
+      cause: `"npm start" in ${directory} exited with ${status} before ${readyUrl} answered.`,
     });
   }
   process.exit(code || 1);
@@ -127,7 +134,7 @@ const timeoutProblem = (): StartupProblem => {
   }
   return {
     area: name,
-    cause: `"bun start" in ${directory} is running, but nothing answered ${readyUrl} within ${timeoutMs} ms (last probe: ${lastProbe}).`,
+    cause: `"npm start" in ${directory} is running, but nothing answered ${readyUrl} within ${timeoutMs} ms (last probe: ${lastProbe}).`,
     fix: `Make the ${name} listen on the PORT environment variable (it got PORT=${port}), or raise E2E_SERVER_TIMEOUT_MS if it is only slow to start.`,
   };
 };

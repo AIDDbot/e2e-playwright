@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { NavigationBar } from "./navigation.bar.js";
+import { NavigationBar } from "./navigation.bar.ts";
 
 /** The layout every route shares; concrete pages extend it with their own content. */
 export class AppPage {
@@ -7,7 +7,10 @@ export class AppPage {
   readonly main: Locator;
   readonly icon: Locator;
 
-  constructor(protected readonly page: Page) {
+  protected readonly page: Page;
+
+  constructor(page: Page) {
+    this.page = page;
     this.navigation = new NavigationBar(page);
     this.main = page.getByRole("main");
     this.icon = page.locator('link[rel="icon"]');

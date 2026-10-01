@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import type { AuthSession } from "../clients/auth.client.js";
+import type { AuthSession } from "../clients/auth.client.ts";
 
 // Where the front persists the session (its authStore); keep in sync with the front
 const SESSION_STORAGE_KEY = "auth";

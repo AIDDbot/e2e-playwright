@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import type { StartupProblem } from "./startup-problems.js";
+import type { StartupProblem } from "./startup-problems.ts";
 
 const DEFAULT_BACK_PORT = 3_000;
 const DEFAULT_FRONT_PORT = 4_000;

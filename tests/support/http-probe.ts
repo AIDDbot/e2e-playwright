@@ -14,7 +14,7 @@ export const probeUrl = async (url: string, timeoutMs: number): Promise<ProbeRes
     const ready = response.status >= READY_STATUS_MIN && response.status <= READY_STATUS_MAX;
     return { detail: `HTTP ${response.status}`, ready };
   } catch (error) {
-    // Bun sets the code on the error, Node on its cause
+    // Network errors expose their code through the cause; timeouts may use the message
     const failure = error as { code?: string; cause?: { code?: string }; message: string };
     return { detail: failure.code ?? failure.cause?.code ?? failure.message, ready: false };
   }

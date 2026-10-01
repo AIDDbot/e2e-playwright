@@ -1,6 +1,6 @@
-import { expect, test } from "../../fixtures/index.js";
-import { appAuthor, appTitle } from "../../support/run-context.js";
-import { copy } from "../../test-data/copy.js";
+import { expect, test } from "../../fixtures/index.ts";
+import { appAuthor, appTitle } from "../../support/run-context.ts";
+import { copy } from "../../test-data/copy.ts";
 
 const HEALTH_ROUTE = "**/api/health";
 const ITEM_COUNT = 4;
